@@ -2,3 +2,9 @@
 setup.py
 .idea
 .ropeproject
+src/arrows.py
+src/balls_and_lines.py
+src/bouncing_balls.py
+src/box2d_pyramid.py
+src/playground.py
+src/using_sprites.py
