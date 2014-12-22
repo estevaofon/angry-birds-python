@@ -2,10 +2,10 @@
 two segment shapes. For each collision it draws a red circle with size
 depending on collision strength. Not interactive.
 """
+
 import os, sys
 current_path = os.getcwd()
-sys.path.insert(0, os.path.join( current_path, "pymunk-4.0.0" ) )
-
+sys.path.insert(0, os.path.join( current_path, "../pymunk-4.0.0" ) )
 __version__ = "$Id:$"
 __docformat__ = "reStructuredText"
 

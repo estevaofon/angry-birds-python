@@ -4,7 +4,7 @@ It is possible to grab one of the crossings with the mouse
 """
 import os, sys
 current_path = os.getcwd()
-sys.path.insert(0, os.path.join( current_path, "pymunk-4.0.0" ) )
+sys.path.insert(0, os.path.join( current_path, "../pymunk-4.0.0" ) )
 
 __version__ = "$Id:$"
 __docformat__ = "reStructuredText"

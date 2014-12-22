@@ -3,7 +3,7 @@ Remake of the pyramid demo from the box2d testbed.
 """
 import os, sys
 current_path = os.getcwd()
-sys.path.insert(0, os.path.join( current_path, "pymunk-4.0.0" ) )
+sys.path.insert(0, os.path.join( current_path, "../pymunk-4.0.0" ) )
 
 import pygame
 from pygame.locals import *

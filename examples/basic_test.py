@@ -6,7 +6,7 @@ __version__ = "$Id:$"
 __docformat__ = "reStructuredText"
 import os, sys
 current_path = os.getcwd()
-sys.path.insert(0, os.path.join( current_path, "pymunk-4.0.0" ) )
+sys.path.insert(0, os.path.join( current_path, "../pymunk-4.0.0" ) )
 
 import pymunk as pm
 import pymunk.util as u
