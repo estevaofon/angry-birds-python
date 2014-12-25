@@ -17,8 +17,12 @@ COLLTYPE_DEFAULT = 0
 COLLTYPE_MOUSE = 1
 
 pygame.init()
-screen = pygame.display.set_mode((1000, 600))
-redbird=pygame.image.load("../resources/red-bird2.png").convert_alpha()
+screen = pygame.display.set_mode((1200, 650))
+redbird=pygame.image.load("../resources/images/red-bird2.png").convert_alpha()
+background = pygame.image.load("../resources/images/background.png").convert_alpha()
+background1 = pygame.image.load("../resources/images/background1.jpg").convert_alpha()
+background2 = pygame.image.load("../resources/images/background3.png").convert_alpha()
+wood = pygame.image.load("../resources/images/wood.png").convert_alpha()
 clock = pygame.time.Clock()
 running = True
 # Physics stuff
@@ -32,11 +36,11 @@ ball_number = 0
 
 # walls
 static_body = pm.Body()
-static_lines = [pm.Segment(static_body, (0.0, 130.0), (1000.0, 130.0), 0.0)
+static_lines = [pm.Segment(static_body, (0.0, 060.0), (1200.0, 060.0), 0.0)
                 ]
 for line in static_lines:
     line.elasticity = 0.95
-    line.friction = 0.9
+    line.friction = 1
 space.add(static_lines)
 
 ticks_to_next_ball = 10
@@ -84,6 +88,8 @@ def draw_poly(poly):
     else:
         color = THECOLORS["red"]
     pygame.draw.lines(screen, color, False, ps)
+    #rect = pygame.Rect(250, 380, 86, 100)
+    #screen.blit(wood, ps[0], rect)
 
 
 def flipyv(v):
@@ -116,24 +122,27 @@ polys.append(create_horizontal_box(pos=p))
 
 def create_ball(distance, angle, x, y):
     # ticks_to_next_ball = 500
-    mass = 10
-    radius = 15
+    mass = 5
+    radius = 16
     inertia = pm.moment_for_circle(mass, 0, radius, (0, 0))
     body = pm.Body(mass, inertia)
     #body.position = 140, 200
     body.position = x, y
-    power = distance * 120
+    power = distance * 45
     impulse = power * Vec2d(1, 0)
     angle = -angle
     body.apply_impulse(impulse.rotated(angle))
     shape = pm.Circle(body, radius, (0, 0))
     shape.elasticity = 0.95
+    shape.friction = 1
     space.add(body, shape)
     balls.append(shape)
 
 while running:
     # Clear screen
-    screen.fill(THECOLORS["white"])
+    #screen.fill(THECOLORS["green"])
+    screen.fill((130, 200, 100))
+    screen.blit(background2, (0,-50))
     sling_x, sling_y = 120, 410
     mx, my = pygame.mouse.get_pos()
     y = my - sling_y
@@ -145,19 +154,21 @@ while running:
         pass
     print 'angle'+str(angle)
     mouse_distance = distance(sling_x, sling_y, mx, my)
-    print mouse_distance
-    max_distance = 85
+    print 'mouse distance'+str(mouse_distance)
+    max_distance = 120
+    if mouse_distance > max_distance:
+        mouse_distance = max_distance
     if mouse_distance >= max_distance:
         ny = max_distance*math.sin(angle)
         nx = max_distance*math.cos(angle)
         nx = sling_x - nx
-        ny = sling_y - ny
+        ny = sling_y - ny +60
         npos = (nx, ny)
     else:
         ny = mouse_distance*math.sin(angle)
         nx = mouse_distance*math.cos(angle)
         nx = sling_x - nx
-        ny = sling_y - ny
+        ny = sling_y - ny + 60
         npos = (nx, ny)
     mx_pymunk, my_pymunk = from_pygame(Vec2d(pygame.mouse.get_pos()), screen)
     mx_pymunk, my_pymunk = from_pygame(Vec2d(npos), screen)
@@ -168,8 +179,6 @@ while running:
     y1 = y1 - 40
     screen.blit(redbird, (x1,y1))
     print 'this is p'+str(p)
-    if mouse_distance > max_distance:
-        mouse_distance = 85
     for event in pygame.event.get():
         if event.type == QUIT:
             running = False
@@ -191,7 +200,7 @@ while running:
     # Draw stuff
     balls_to_remove = []
     for ball in balls:
-        if ball.body.position.y < 120: balls_to_remove.append(ball)
+        if ball.body.position.y < 0: balls_to_remove.append(ball)
 
         p = to_pygame(ball.body.position)
         x, y = p
@@ -214,6 +223,8 @@ while running:
         draw_poly(poly)
     sling = pygame.Rect(sling_x, sling_y, 10, 60)
     pygame.draw.rect(screen, (200, 100, 0), sling)
+    #rope = pygame.Rect(sling_x, sling_y, x1, y1)
+    pygame.draw.line(screen, (200, 100, 0), (sling_x, sling_y), (x1, y1))
     # Update physics
     dt = 1.0/60.0
     for x in range(1):
