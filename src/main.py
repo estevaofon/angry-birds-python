@@ -10,6 +10,8 @@ import pymunk as pm
 from pymunk import Vec2d
 import math, sys, random
 import pymunk.util as u
+import math
+from pymunk.pygame_util import from_pygame
 
 
 COLLTYPE_DEFAULT = 0
@@ -74,6 +76,15 @@ def flipyv(v):
     h = 600
     return int(v.x), int(-v.y+h)
 
+def distance(xo, yo, x, y):
+    """
+    distance between players
+    """
+    dx = x - xo
+    dy = y - yo
+    d = ((dx ** 2) + (dy ** 2)) ** 0.5
+    return d
+
 p = (800, 150)
 polys.append(create_box(pos = p))
 p = (870, 150)
@@ -86,17 +97,18 @@ p = (870, 230)
 polys.append(create_box(pos = p))
 p = (800, 320)
 polys.append(create_horizontal_box(pos = p))
-def create_ball():
+def create_ball(distance, angle, x, y):
     #ticks_to_next_ball = 500
     mass = 10
     radius = 15
     inertia = pm.moment_for_circle(mass, 0, radius, (0, 0))
     body = pm.Body(mass, inertia)
-    x = random.randint(115, 350)
     body.position = 140, 200
-    power = 8000
+    #body.position = x, y
+    power = distance * 110
     impulse = power * Vec2d(1,0)
-    angle = 1.3
+    #angle = 1.0
+    angle = -angle
     body.apply_impulse(impulse.rotated(angle))
     shape = pm.Circle(body, radius, (0, 0))
     shape.elasticity = 0.95
@@ -105,6 +117,19 @@ def create_ball():
 
 #create_ball()
 while running:
+    sling_x, sling_y = 120, 410
+    mx, my = pygame.mouse.get_pos()
+    y = my - sling_y
+    x = mx - sling_x
+    try:
+        angle = math.atan((float(y))/x)
+    except:
+        print "PASSED!"
+        pass
+    print 'angle'+str(angle)
+    mouse_distance = distance(sling_x,sling_y,mx,my)
+    print mouse_distance
+    mx_pymunk, my_pymunk = from_pygame( Vec2d(pygame.mouse.get_pos()), screen )
     for event in pygame.event.get():
         if event.type == QUIT:
             running = False
@@ -118,7 +143,7 @@ while running:
                 p = flipyv(Vec2d(event.pos))
                 polys.append(create_horizontal_box(pos = p))
             else:
-                create_ball()
+                create_ball(mouse_distance, angle, mx_pymunk, my_pymunk)
                 #ticks_to_next_ball -= 1
                 #if ticks_to_next_ball <= 0:
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
@@ -147,8 +172,7 @@ while running:
         pygame.draw.lines(screen, THECOLORS["lightgray"], False, [p1,p2])
     for poly in polys:
         draw_poly(poly)
-
-    sling = pygame.Rect(120, 410, 10, 60)
+    sling = pygame.Rect(sling_x, sling_y, 10, 60)
     pygame.draw.rect(screen, (200,100,0), sling)
     # Update physics
     dt = 1.0/60.0
