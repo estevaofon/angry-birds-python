@@ -1,16 +1,15 @@
 import os
 import sys
 current_path = os.getcwd()
-sys.path.insert(0, os.path.join( current_path, "../pymunk-4.0.0" ) )
+sys.path.insert(0, os.path.join(current_path, "../pymunk-4.0.0"))
 
 import pygame
 from pygame.locals import *
 from pygame.color import *
 import pymunk as pm
 from pymunk import Vec2d
-import math, sys, random
-import pymunk.util as u
 import math
+import pymunk.util as u
 from pymunk.pygame_util import from_pygame
 
 
@@ -19,6 +18,7 @@ COLLTYPE_MOUSE = 1
 
 pygame.init()
 screen = pygame.display.set_mode((1000, 600))
+redbird=pygame.image.load("../resources/red-bird2.png").convert_alpha()
 clock = pygame.time.Clock()
 running = True
 # Physics stuff
@@ -36,34 +36,46 @@ static_lines = [pm.Segment(static_body, (0.0, 130.0), (1000.0, 130.0), 0.0)
                 ]
 for line in static_lines:
     line.elasticity = 0.95
-    line.friction = 0.7
+    line.friction = 0.9
 space.add(static_lines)
 
 ticks_to_next_ball = 10
+
 
 def to_pygame(p):
     """Small hack to convert pymunk to pygame coordinates"""
     return int(p.x), int(-p.y+600)
 
-def create_box(pos, size = 8, height=60, mass = 5.0):
-    box_points = map(Vec2d, [(-size, -size), (-size, height), (size, height), (size, -size)])
-    return create_poly(box_points, mass = mass, pos = pos)
-def create_horizontal_box(pos, size = 8, width=80, mass = 5.0):
-    box_points = map(Vec2d, [(-size, -size), (-size, size), (width, size), (width, -size)])
-    return create_poly(box_points, mass = mass, pos = pos)
-def create_poly(points, mass = 5.0, pos = (0,0)):
-    moment = pm.moment_for_poly(mass,points, Vec2d(0,0))
-    #moment = 1000
+def to_pygame2(x,y):
+    """Small hack to convert pymunk to pygame coordinates"""
+    return int(x), int(-y+600)
+
+def create_box(pos, size=8, height=60, mass=5.0):
+    box_points = map(Vec2d, [(-size, -size), (-size, height),
+                             (size, height), (size, -size)])
+    return create_poly(box_points, mass=mass, pos=pos)
+
+
+def create_horizontal_box(pos, size=8, width=80, mass=5.0):
+    box_points = map(Vec2d, [(-size, -size), (-size, size),
+                             (width, size), (width, -size)])
+    return create_poly(box_points, mass=mass, pos=pos)
+
+
+def create_poly(points, mass=5.0, pos=(0, 0)):
+    moment = pm.moment_for_poly(mass, points, Vec2d(0, 0))
+    # moment = 1000
     body = pm.Body(mass, moment)
     body.position = Vec2d(pos)
     print body.position
-    shape = pm.Poly(body, points, Vec2d(0,0))
+    shape = pm.Poly(body, points, Vec2d(0, 0))
     shape.friction = 0.5
     shape.collision_type = COLLTYPE_DEFAULT
     space.add(body, shape)
     return shape
+
+
 def draw_poly(poly):
-    body = poly.body
     ps = poly.get_vertices()
     ps.append(ps[0])
     ps = map(flipyv, ps)
@@ -72,9 +84,12 @@ def draw_poly(poly):
     else:
         color = THECOLORS["red"]
     pygame.draw.lines(screen, color, False, ps)
+
+
 def flipyv(v):
     h = 600
     return int(v.x), int(-v.y+h)
+
 
 def distance(xo, yo, x, y):
     """
@@ -86,28 +101,29 @@ def distance(xo, yo, x, y):
     return d
 
 p = (800, 150)
-polys.append(create_box(pos = p))
+polys.append(create_box(pos=p))
 p = (870, 150)
-polys.append(create_box(pos = p))
+polys.append(create_box(pos=p))
 p = (800, 220)
-polys.append(create_horizontal_box(pos = p))
+polys.append(create_horizontal_box(pos=p))
 p = (800, 230)
-polys.append(create_box(pos = p))
+polys.append(create_box(pos=p))
 p = (870, 230)
-polys.append(create_box(pos = p))
+polys.append(create_box(pos=p))
 p = (800, 320)
-polys.append(create_horizontal_box(pos = p))
+polys.append(create_horizontal_box(pos=p))
+
+
 def create_ball(distance, angle, x, y):
-    #ticks_to_next_ball = 500
+    # ticks_to_next_ball = 500
     mass = 10
     radius = 15
     inertia = pm.moment_for_circle(mass, 0, radius, (0, 0))
     body = pm.Body(mass, inertia)
-    body.position = 140, 200
-    #body.position = x, y
-    power = distance * 110
-    impulse = power * Vec2d(1,0)
-    #angle = 1.0
+    #body.position = 140, 200
+    body.position = x, y
+    power = distance * 120
+    impulse = power * Vec2d(1, 0)
     angle = -angle
     body.apply_impulse(impulse.rotated(angle))
     shape = pm.Circle(body, radius, (0, 0))
@@ -115,8 +131,9 @@ def create_ball(distance, angle, x, y):
     space.add(body, shape)
     balls.append(shape)
 
-#create_ball()
 while running:
+    # Clear screen
+    screen.fill(THECOLORS["white"])
     sling_x, sling_y = 120, 410
     mx, my = pygame.mouse.get_pos()
     y = my - sling_y
@@ -127,9 +144,32 @@ while running:
         print "PASSED!"
         pass
     print 'angle'+str(angle)
-    mouse_distance = distance(sling_x,sling_y,mx,my)
+    mouse_distance = distance(sling_x, sling_y, mx, my)
     print mouse_distance
-    mx_pymunk, my_pymunk = from_pygame( Vec2d(pygame.mouse.get_pos()), screen )
+    max_distance = 85
+    if mouse_distance >= max_distance:
+        ny = max_distance*math.sin(angle)
+        nx = max_distance*math.cos(angle)
+        nx = sling_x - nx
+        ny = sling_y - ny
+        npos = (nx, ny)
+    else:
+        ny = mouse_distance*math.sin(angle)
+        nx = mouse_distance*math.cos(angle)
+        nx = sling_x - nx
+        ny = sling_y - ny
+        npos = (nx, ny)
+    mx_pymunk, my_pymunk = from_pygame(Vec2d(pygame.mouse.get_pos()), screen)
+    mx_pymunk, my_pymunk = from_pygame(Vec2d(npos), screen)
+    to_pg = mx_pymunk, my_pymunk
+    p = to_pygame2(mx_pymunk, my_pymunk)
+    x1, y1 = p
+    x1 = x1 - 20
+    y1 = y1 - 40
+    screen.blit(redbird, (x1,y1))
+    print 'this is p'+str(p)
+    if mouse_distance > max_distance:
+        mouse_distance = 85
     for event in pygame.event.get():
         if event.type == QUIT:
             running = False
@@ -141,16 +181,12 @@ while running:
             start_time = pygame.time.get_ticks()
             if pygame.key.get_mods() & KMOD_SHIFT:
                 p = flipyv(Vec2d(event.pos))
-                polys.append(create_horizontal_box(pos = p))
+                polys.append(create_horizontal_box(pos=p))
             else:
                 create_ball(mouse_distance, angle, mx_pymunk, my_pymunk)
-                #ticks_to_next_ball -= 1
-                #if ticks_to_next_ball <= 0:
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             pass
 
-    # Clear screen
-    screen.fill(THECOLORS["white"])
 
     # Draw stuff
     balls_to_remove = []
@@ -158,6 +194,10 @@ while running:
         if ball.body.position.y < 120: balls_to_remove.append(ball)
 
         p = to_pygame(ball.body.position)
+        x, y = p
+        x = x - 30
+        y = y - 40
+        screen.blit(redbird, (x,y))
         pygame.draw.circle(screen, THECOLORS["blue"], p, int(ball.radius), 2)
 
     for ball in balls_to_remove:
@@ -169,11 +209,11 @@ while running:
         pv2 = body.position + line.b.rotated(body.angle)
         p1 = to_pygame(pv1)
         p2 = to_pygame(pv2)
-        pygame.draw.lines(screen, THECOLORS["lightgray"], False, [p1,p2])
+        pygame.draw.lines(screen, THECOLORS["lightgray"], False, [p1, p2])
     for poly in polys:
         draw_poly(poly)
     sling = pygame.Rect(sling_x, sling_y, 10, 60)
-    pygame.draw.rect(screen, (200,100,0), sling)
+    pygame.draw.rect(screen, (200, 100, 0), sling)
     # Update physics
     dt = 1.0/60.0
     for x in range(1):
