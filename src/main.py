@@ -28,6 +28,7 @@ running = True
 # Physics stuff
 space = pm.Space()
 space.gravity = (0.0, -900.0)
+#pygame.mouse.set_visible(0)
 
 balls = []
 polys = []
@@ -140,10 +141,10 @@ def create_ball(distance, angle, x, y):
 
 while running:
     # Clear screen
-    #screen.fill(THECOLORS["green"])
-    screen.fill((130, 200, 100))
-    screen.blit(background2, (0,-50))
-    sling_x, sling_y = 120, 410
+    screen.fill(THECOLORS["white"])
+    #screen.fill((130, 200, 100))
+    #screen.blit(background2, (0,-50))
+    sling_x, sling_y = 120, 450
     mx, my = pygame.mouse.get_pos()
     y = my - sling_y
     x = mx - sling_x
@@ -155,29 +156,14 @@ while running:
     print 'angle'+str(angle)
     mouse_distance = distance(sling_x, sling_y, mx, my)
     print 'mouse distance'+str(mouse_distance)
-    max_distance = 120
-    if mouse_distance > max_distance:
-        mouse_distance = max_distance
-    if mouse_distance >= max_distance:
-        ny = max_distance*math.sin(angle)
-        nx = max_distance*math.cos(angle)
-        nx = sling_x - nx
-        ny = sling_y - ny +60
-        npos = (nx, ny)
-    else:
-        ny = mouse_distance*math.sin(angle)
-        nx = mouse_distance*math.cos(angle)
-        nx = sling_x - nx
-        ny = sling_y - ny + 60
-        npos = (nx, ny)
-    mx_pymunk, my_pymunk = from_pygame(Vec2d(pygame.mouse.get_pos()), screen)
-    mx_pymunk, my_pymunk = from_pygame(Vec2d(npos), screen)
-    to_pg = mx_pymunk, my_pymunk
-    p = to_pygame2(mx_pymunk, my_pymunk)
-    x1, y1 = p
-    x1 = x1 - 20
-    y1 = y1 - 40
-    screen.blit(redbird, (x1,y1))
+    x_pymunk, y_pymunk = from_pygame(Vec2d(pygame.mouse.get_pos()), screen)
+    x_pygame, y_pygame = to_pygame2(x_pymunk, y_pymunk)
+    y_pymunk = y_pymunk - 50
+    x_pygame = x_pygame - 30
+    y_pygame = y_pygame + 22
+    xo_sprite = x_pygame + 30
+    yo_sprite = y_pygame + 30
+    screen.blit(redbird, (x_pygame,y_pygame))
     print 'this is p'+str(p)
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -192,10 +178,9 @@ while running:
                 p = flipyv(Vec2d(event.pos))
                 polys.append(create_horizontal_box(pos=p))
             else:
-                create_ball(mouse_distance, angle, mx_pymunk, my_pymunk)
+                create_ball(mouse_distance, angle, x_pymunk, y_pymunk)
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             pass
-
 
     # Draw stuff
     balls_to_remove = []
@@ -221,10 +206,9 @@ while running:
         pygame.draw.lines(screen, THECOLORS["lightgray"], False, [p1, p2])
     for poly in polys:
         draw_poly(poly)
-    sling = pygame.Rect(sling_x, sling_y, 10, 60)
+    sling = pygame.Rect(sling_x, sling_y, 10, 80)
     pygame.draw.rect(screen, (200, 100, 0), sling)
-    #rope = pygame.Rect(sling_x, sling_y, x1, y1)
-    pygame.draw.line(screen, (200, 100, 0), (sling_x, sling_y), (x1, y1))
+    pygame.draw.line(screen,(0,0,255), (sling_x, sling_y), (xo_sprite, yo_sprite), 2)
     # Update physics
     dt = 1.0/60.0
     for x in range(1):
