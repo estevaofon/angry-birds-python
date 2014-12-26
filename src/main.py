@@ -47,6 +47,19 @@ space.add(static_lines)
 ticks_to_next_ball = 10
 
 
+def vector(p0, p1):
+    "(xo,yo), (x1,y1)"
+    a = p1[0] - p0[0]
+    b = p1[1] - p0[1]
+    return (a, b)
+
+
+def unit_vector(v):
+    "(a,b)"
+    h = ((v[0]**2)+(v[1]**2))**0.5
+    ua = v[0] / h
+    ub = v[1] / h
+    return (ua, ub)
 def to_pygame(p):
     """Small hack to convert pymunk to pygame coordinates"""
     return int(p.x), int(-p.y+600)
@@ -144,15 +157,18 @@ while running:
     screen.fill(THECOLORS["white"])
     #screen.fill((130, 200, 100))
     #screen.blit(background2, (0,-50))
-    sling_x, sling_y = 120, 450
+    sling_x, sling_y = 150, 420
     mx, my = pygame.mouse.get_pos()
     y = my - sling_y
     x = mx - sling_x
-    try:
-        angle = math.atan((float(y))/x)
-    except:
-        print "PASSED!"
-        pass
+    sling = pygame.Rect(sling_x, sling_y, 10, 80)
+    pygame.draw.rect(screen, (200, 100, 0), sling)
+    rope_lenght = 110
+    if x == 0:
+        x = 0.00000000000001
+    if y == 0:
+        y = 0.00000000000001
+    angle = math.atan((float(y))/x)
     print 'angle'+str(angle)
     mouse_distance = distance(sling_x, sling_y, mx, my)
     print 'mouse distance'+str(mouse_distance)
@@ -163,8 +179,28 @@ while running:
     y_pygame = y_pygame + 22
     xo_sprite = x_pygame + 30
     yo_sprite = y_pygame + 30
-    screen.blit(redbird, (x_pygame,y_pygame))
-    print 'this is p'+str(p)
+    pygame.draw.line(screen,(0,0,255), (sling_x, sling_y), (xo_sprite, yo_sprite), 3)
+    v = vector((sling_x, sling_y), (xo_sprite, yo_sprite))
+    uv = unit_vector(v)
+    print 'uv'+str(uv)
+    uv1 = uv[0]
+    uv2 = uv[1]
+    pu = (uv1*110+sling_x, uv2*110+sling_y)
+    print 'pu'+str(pu)
+    pygame.draw.line(screen,(255,0,0), (sling_x, sling_y), pu, 3)
+    pygame.mouse.set_visible(0)
+    if mouse_distance > rope_lenght:
+        pux , puy = pu
+        pux = pux - 30
+        puy = puy - 30
+        pul = pux, puy
+        screen.blit(redbird, pul)
+        x_pymunk, y_pymunk = from_pygame(Vec2d(pul), screen)
+        y_pymunk = y_pymunk - 80
+        x_pymunk = x_pymunk + 20
+    else:
+        screen.blit(redbird, (x_pygame,y_pygame))
+
     for event in pygame.event.get():
         if event.type == QUIT:
             running = False
@@ -178,7 +214,12 @@ while running:
                 p = flipyv(Vec2d(event.pos))
                 polys.append(create_horizontal_box(pos=p))
             else:
-                create_ball(mouse_distance, angle, x_pymunk, y_pymunk)
+                if mouse_distance > rope_lenght:
+                    mouse_distance = rope_lenght
+                if mx < sling_x+5:
+                    create_ball(mouse_distance, angle, x_pymunk, y_pymunk)
+                else:
+                    create_ball(-mouse_distance, angle, x_pymunk, y_pymunk)
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             pass
 
@@ -206,9 +247,6 @@ while running:
         pygame.draw.lines(screen, THECOLORS["lightgray"], False, [p1, p2])
     for poly in polys:
         draw_poly(poly)
-    sling = pygame.Rect(sling_x, sling_y, 10, 80)
-    pygame.draw.rect(screen, (200, 100, 0), sling)
-    pygame.draw.line(screen,(0,0,255), (sling_x, sling_y), (xo_sprite, yo_sprite), 2)
     # Update physics
     dt = 1.0/60.0
     for x in range(1):
