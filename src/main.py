@@ -18,17 +18,17 @@ COLLTYPE_MOUSE = 1
 
 pygame.init()
 screen = pygame.display.set_mode((1200, 650))
-redbird=pygame.image.load("../resources/images/red-bird2.png").convert_alpha()
+redbird=pygame.image.load("../resources/images/red-bird3.png").convert_alpha()
 background = pygame.image.load("../resources/images/background.png").convert_alpha()
 background1 = pygame.image.load("../resources/images/background1.jpg").convert_alpha()
 background2 = pygame.image.load("../resources/images/background3.png").convert_alpha()
 wood = pygame.image.load("../resources/images/wood.png").convert_alpha()
-sling_image = pygame.image.load("../resources/images/sling-2.png").convert_alpha()
+sling_image = pygame.image.load("../resources/images/sling-3.png").convert_alpha()
 clock = pygame.time.Clock()
 running = True
 # Physics stuff
 space = pm.Space()
-space.gravity = (0.0, -900.0)
+space.gravity = (0.0, -700.0)
 #pygame.mouse.set_visible(0)
 
 balls = []
@@ -121,29 +121,29 @@ def distance(xo, yo, x, y):
     d = ((dx ** 2) + (dy ** 2)) ** 0.5
     return d
 
-p = (800, 150)
+p = (950, 80)
 polys.append(create_box(pos=p))
-p = (870, 150)
+p = (1020, 80)
 polys.append(create_box(pos=p))
-p = (800, 220)
+p = (950, 150)
 polys.append(create_horizontal_box(pos=p))
-p = (800, 230)
+p = (950, 160)
 polys.append(create_box(pos=p))
-p = (870, 230)
+p = (1020, 160)
 polys.append(create_box(pos=p))
-p = (800, 320)
+p = (950, 230)
 polys.append(create_horizontal_box(pos=p))
 
 
 def create_ball(distance, angle, x, y):
     # ticks_to_next_ball = 500
     mass = 5
-    radius = 16
+    radius = 12
     inertia = pm.moment_for_circle(mass, 0, radius, (0, 0))
     body = pm.Body(mass, inertia)
     #body.position = 140, 200
     body.position = x, y
-    power = distance * 45
+    power = distance * 53
     impulse = power * Vec2d(1, 0)
     angle = -angle
     body.apply_impulse(impulse.rotated(angle))
@@ -158,15 +158,13 @@ while running:
     screen.fill(THECOLORS["white"])
     #screen.fill((130, 200, 100))
     #screen.blit(background2, (0,-50))
-    sling_x, sling_y = 170, 410
+    sling_x, sling_y = 140, 450
     mx, my = pygame.mouse.get_pos()
     y = my - sling_y
     x = mx - sling_x
-    sling = pygame.Rect(sling_x, sling_y, 20, 80)
-    pygame.draw.rect(screen, (200, 100, 0), sling)
-    rope_lenght = 110
-    rect = pygame.Rect(100, 0, 70, 220)
-    screen.blit(sling_image, (163, 360), rect)
+    rope_lenght = 90
+    rect = pygame.Rect(50, 0, 70, 220)
+    screen.blit(sling_image, (138, 420), rect)
     if x == 0:
         x = 0.00000000000001
     if y == 0:
@@ -188,20 +186,22 @@ while running:
     print 'uv'+str(uv)
     uv1 = uv[0]
     uv2 = uv[1]
-    pu = (uv1*110+sling_x, uv2*110+sling_y)
+    pu = (uv1*rope_lenght+sling_x, uv2*rope_lenght+sling_y)
     print 'pu'+str(pu)
     pygame.draw.line(screen,(255,0,0), (sling_x, sling_y), pu, 3)
+    x_redbird = xo_sprite - 20
+    y_redbird = yo_sprite - 20
     if mouse_distance > rope_lenght:
         pux , puy = pu
-        pux = pux - 30
-        puy = puy - 30
+        pux = pux - 20
+        puy = puy - 20
         pul = pux, puy
         screen.blit(redbird, pul)
         x_pymunk, y_pymunk = from_pygame(Vec2d(pul), screen)
         y_pymunk = y_pymunk - 80
         x_pymunk = x_pymunk + 20
     else:
-        screen.blit(redbird, (x_pygame,y_pygame))
+        screen.blit(redbird, (x_redbird,y_redbird))
 
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -232,8 +232,8 @@ while running:
 
         p = to_pygame(ball.body.position)
         x, y = p
-        x = x - 30
-        y = y - 40
+        x = x - 22
+        y = y - 20
         screen.blit(redbird, (x,y))
         pygame.draw.circle(screen, THECOLORS["blue"], p, int(ball.radius), 2)
 
@@ -255,7 +255,7 @@ while running:
         space.step(dt)
 
     rect = pygame.Rect(0, 0, 60, 200)
-    screen.blit(sling_image, (120, 360), rect)
+    screen.blit(sling_image, (120, 420), rect)
     #screen.blit(sling_image, (115,340))
     # Flip screen
     pygame.display.flip()
