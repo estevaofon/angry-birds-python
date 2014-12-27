@@ -23,6 +23,7 @@ background = pygame.image.load("../resources/images/background.png").convert_alp
 background1 = pygame.image.load("../resources/images/background1.jpg").convert_alpha()
 background2 = pygame.image.load("../resources/images/background3.png").convert_alpha()
 wood = pygame.image.load("../resources/images/wood.png").convert_alpha()
+sling_image = pygame.image.load("../resources/images/sling-2.png").convert_alpha()
 clock = pygame.time.Clock()
 running = True
 # Physics stuff
@@ -157,13 +158,15 @@ while running:
     screen.fill(THECOLORS["white"])
     #screen.fill((130, 200, 100))
     #screen.blit(background2, (0,-50))
-    sling_x, sling_y = 150, 420
+    sling_x, sling_y = 170, 410
     mx, my = pygame.mouse.get_pos()
     y = my - sling_y
     x = mx - sling_x
-    sling = pygame.Rect(sling_x, sling_y, 10, 80)
+    sling = pygame.Rect(sling_x, sling_y, 20, 80)
     pygame.draw.rect(screen, (200, 100, 0), sling)
     rope_lenght = 110
+    rect = pygame.Rect(100, 0, 70, 220)
+    screen.blit(sling_image, (163, 360), rect)
     if x == 0:
         x = 0.00000000000001
     if y == 0:
@@ -188,7 +191,6 @@ while running:
     pu = (uv1*110+sling_x, uv2*110+sling_y)
     print 'pu'+str(pu)
     pygame.draw.line(screen,(255,0,0), (sling_x, sling_y), pu, 3)
-    pygame.mouse.set_visible(0)
     if mouse_distance > rope_lenght:
         pux , puy = pu
         pux = pux - 30
@@ -252,6 +254,9 @@ while running:
     for x in range(1):
         space.step(dt)
 
+    rect = pygame.Rect(0, 0, 60, 200)
+    screen.blit(sling_image, (120, 360), rect)
+    #screen.blit(sling_image, (115,340))
     # Flip screen
     pygame.display.flip()
     clock.tick(50)
