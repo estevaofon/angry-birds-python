@@ -86,7 +86,6 @@ def create_poly(points, mass=5.0, pos=(0, 0)):
     # moment = 1000
     body = pm.Body(mass, moment)
     body.position = Vec2d(pos)
-    print body.position
     shape = pm.Poly(body, points, Vec2d(0, 0))
     shape.friction = 0.5
     shape.collision_type = COLLTYPE_DEFAULT
@@ -121,6 +120,12 @@ def distance(xo, yo, x, y):
     d = ((dx ** 2) + (dy ** 2)) ** 0.5
     return d
 
+def load_music():
+    """Load the musics of a list"""
+    song1 = '../resources/sounds/angry-birds.mp3'
+    pygame.mixer.music.load(song1)
+    pygame.mixer.music.play(-1)
+
 p = (950, 80)
 polys.append(create_box(pos=p))
 p = (1020, 80)
@@ -152,47 +157,38 @@ def create_ball(distance, angle, x, y):
     shape.friction = 1
     space.add(body, shape)
     balls.append(shape)
-
+load_music()
 while running:
     # Clear screen
-    screen.fill(THECOLORS["white"])
-    #screen.fill((130, 200, 100))
-    #screen.blit(background2, (0,-50))
+    #screen.fill(THECOLORS["white"])
+    screen.fill((130, 200, 100))
+    screen.blit(background2, (0,-50))
     sling_x, sling_y = 140, 450
-    mx, my = pygame.mouse.get_pos()
-    y = my - sling_y
-    x = mx - sling_x
     rope_lenght = 90
     rect = pygame.Rect(50, 0, 70, 220)
     screen.blit(sling_image, (138, 420), rect)
-    if x == 0:
-        x = 0.00000000000001
-    if y == 0:
-        y = 0.00000000000001
-    angle = math.atan((float(y))/x)
-    print 'angle'+str(angle)
-    mouse_distance = distance(sling_x, sling_y, mx, my)
-    print 'mouse distance'+str(mouse_distance)
     x_pymunk, y_pymunk = from_pygame(Vec2d(pygame.mouse.get_pos()), screen)
-    x_pygame, y_pygame = to_pygame2(x_pymunk, y_pymunk)
+    x_pygame_mouse, y_pygame_mouse = to_pygame2(x_pymunk, y_pymunk)
     y_pymunk = y_pymunk - 50
-    x_pygame = x_pygame - 30
-    y_pygame = y_pygame + 22
-    xo_sprite = x_pygame + 30
-    yo_sprite = y_pygame + 30
-    pygame.draw.line(screen,(0,0,255), (sling_x, sling_y), (xo_sprite, yo_sprite), 3)
-    v = vector((sling_x, sling_y), (xo_sprite, yo_sprite))
+    y_pygame_mouse = y_pygame_mouse + 52
+    pygame.draw.line(screen, (0, 0, 255), (sling_x, sling_y),
+                     (x_pygame_mouse, y_pygame_mouse), 3)
+    v = vector((sling_x, sling_y), (x_pygame_mouse, y_pygame_mouse))
     uv = unit_vector(v)
-    print 'uv'+str(uv)
     uv1 = uv[0]
     uv2 = uv[1]
     pu = (uv1*rope_lenght+sling_x, uv2*rope_lenght+sling_y)
-    print 'pu'+str(pu)
-    pygame.draw.line(screen,(255,0,0), (sling_x, sling_y), pu, 3)
-    x_redbird = xo_sprite - 20
-    y_redbird = yo_sprite - 20
+    dy = y_pygame_mouse - sling_y
+    dx = x_pygame_mouse - sling_x
+    if dx == 0:
+        dx = 0.00000000000001
+    angle = math.atan((float(dy))/dx)
+    mouse_distance = distance(sling_x, sling_y, x_pygame_mouse, y_pygame_mouse)
+    pygame.draw.line(screen, (255, 0, 0), (sling_x, sling_y), pu, 3)
+    x_redbird = x_pygame_mouse - 20
+    y_redbird = y_pygame_mouse - 20
     if mouse_distance > rope_lenght:
-        pux , puy = pu
+        pux, puy = pu
         pux = pux - 20
         puy = puy - 20
         pul = pux, puy
@@ -201,7 +197,7 @@ while running:
         y_pymunk = y_pymunk - 80
         x_pymunk = x_pymunk + 20
     else:
-        screen.blit(redbird, (x_redbird,y_redbird))
+        screen.blit(redbird, (x_redbird, y_redbird))
 
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -210,7 +206,7 @@ while running:
             running = False
         elif event.type == KEYDOWN and event.key == K_p:
             pygame.image.save(screen, "bouncing_balls.png")
-        elif event.type == MOUSEBUTTONDOWN and event.button == 1: # LMB
+        elif event.type == MOUSEBUTTONDOWN and event.button == 1:
             start_time = pygame.time.get_ticks()
             if pygame.key.get_mods() & KMOD_SHIFT:
                 p = flipyv(Vec2d(event.pos))
@@ -218,7 +214,7 @@ while running:
             else:
                 if mouse_distance > rope_lenght:
                     mouse_distance = rope_lenght
-                if mx < sling_x+5:
+                if x_pygame_mouse < sling_x+5:
                     create_ball(mouse_distance, angle, x_pymunk, y_pymunk)
                 else:
                     create_ball(-mouse_distance, angle, x_pymunk, y_pymunk)
@@ -256,7 +252,6 @@ while running:
 
     rect = pygame.Rect(0, 0, 60, 200)
     screen.blit(sling_image, (120, 420), rect)
-    #screen.blit(sling_image, (115,340))
     # Flip screen
     pygame.display.flip()
     clock.tick(50)
