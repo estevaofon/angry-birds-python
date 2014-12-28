@@ -18,7 +18,7 @@ COLLTYPE_MOUSE = 1
 
 pygame.init()
 screen = pygame.display.set_mode((1200, 650))
-redbird=pygame.image.load("../resources/images/red-bird3.png").convert_alpha()
+redbird = pygame.image.load("../resources/images/red-bird3.png").convert_alpha()
 background = pygame.image.load("../resources/images/background.png").convert_alpha()
 background1 = pygame.image.load("../resources/images/background1.jpg").convert_alpha()
 background2 = pygame.image.load("../resources/images/background3.png").convert_alpha()
@@ -45,9 +45,6 @@ for line in static_lines:
     line.friction = 1
 space.add(static_lines)
 
-ticks_to_next_ball = 10
-
-
 def vector(p0, p1):
     "(xo,yo), (x1,y1)"
     a = p1[0] - p0[0]
@@ -58,16 +55,22 @@ def vector(p0, p1):
 def unit_vector(v):
     "(a,b)"
     h = ((v[0]**2)+(v[1]**2))**0.5
+    if h == 0:
+        h = 0.000000000000001
     ua = v[0] / h
     ub = v[1] / h
     return (ua, ub)
+
+
 def to_pygame(p):
     """Small hack to convert pymunk to pygame coordinates"""
     return int(p.x), int(-p.y+600)
 
-def to_pygame2(x,y):
+
+def to_pygame2(x, y):
     """Small hack to convert pymunk to pygame coordinates"""
     return int(x), int(-y+600)
+
 
 def create_box(pos, size=8, height=60, mass=5.0):
     box_points = map(Vec2d, [(-size, -size), (-size, height),
@@ -120,24 +123,27 @@ def distance(xo, yo, x, y):
     d = ((dx ** 2) + (dy ** 2)) ** 0.5
     return d
 
+
 def load_music():
     """Load the musics of a list"""
     song1 = '../resources/sounds/angry-birds.mp3'
     pygame.mixer.music.load(song1)
     pygame.mixer.music.play(-1)
 
-p = (950, 80)
-polys.append(create_box(pos=p))
-p = (1020, 80)
-polys.append(create_box(pos=p))
-p = (950, 150)
-polys.append(create_horizontal_box(pos=p))
-p = (950, 160)
-polys.append(create_box(pos=p))
-p = (1020, 160)
-polys.append(create_box(pos=p))
-p = (950, 230)
-polys.append(create_horizontal_box(pos=p))
+
+def place_polys():
+    p = (950, 80)
+    polys.append(create_box(pos=p))
+    p = (1020, 80)
+    polys.append(create_box(pos=p))
+    p = (950, 150)
+    polys.append(create_horizontal_box(pos=p))
+    p = (950, 160)
+    polys.append(create_box(pos=p))
+    p = (1020, 160)
+    polys.append(create_box(pos=p))
+    p = (950, 230)
+    polys.append(create_horizontal_box(pos=p))
 
 
 def create_ball(distance, angle, x, y):
@@ -146,7 +152,6 @@ def create_ball(distance, angle, x, y):
     radius = 12
     inertia = pm.moment_for_circle(mass, 0, radius, (0, 0))
     body = pm.Body(mass, inertia)
-    #body.position = 140, 200
     body.position = x, y
     power = distance * 53
     impulse = power * Vec2d(1, 0)
@@ -157,32 +162,33 @@ def create_ball(distance, angle, x, y):
     shape.friction = 1
     space.add(body, shape)
     balls.append(shape)
-load_music()
+
+
+#load_music()
+place_polys()
 while running:
-    # Clear screen
+    # Drawing background
     #screen.fill(THECOLORS["white"])
     screen.fill((130, 200, 100))
-    screen.blit(background2, (0,-50))
+    screen.blit(background2, (0, -50))
+    # Drawing sling
     sling_x, sling_y = 140, 450
-    rope_lenght = 90
     rect = pygame.Rect(50, 0, 70, 220)
     screen.blit(sling_image, (138, 420), rect)
+    # Getting mouse position
     x_pymunk, y_pymunk = from_pygame(Vec2d(pygame.mouse.get_pos()), screen)
     x_pygame_mouse, y_pygame_mouse = to_pygame2(x_pymunk, y_pymunk)
     y_pymunk = y_pymunk - 50
     y_pygame_mouse = y_pygame_mouse + 52
     pygame.draw.line(screen, (0, 0, 255), (sling_x, sling_y),
                      (x_pygame_mouse, y_pygame_mouse), 3)
+    # Fixing bird to the sling rope
+    rope_lenght = 90
     v = vector((sling_x, sling_y), (x_pygame_mouse, y_pygame_mouse))
     uv = unit_vector(v)
     uv1 = uv[0]
     uv2 = uv[1]
     pu = (uv1*rope_lenght+sling_x, uv2*rope_lenght+sling_y)
-    dy = y_pygame_mouse - sling_y
-    dx = x_pygame_mouse - sling_x
-    if dx == 0:
-        dx = 0.00000000000001
-    angle = math.atan((float(dy))/dx)
     mouse_distance = distance(sling_x, sling_y, x_pygame_mouse, y_pygame_mouse)
     pygame.draw.line(screen, (255, 0, 0), (sling_x, sling_y), pu, 3)
     x_redbird = x_pygame_mouse - 20
@@ -198,7 +204,13 @@ while running:
         x_pymunk = x_pymunk + 20
     else:
         screen.blit(redbird, (x_redbird, y_redbird))
-
+    # Angle of impulse
+    dy = y_pygame_mouse - sling_y
+    dx = x_pygame_mouse - sling_x
+    if dx == 0:
+        dx = 0.00000000000001
+    angle = math.atan((float(dy))/dx)
+    # Input handling
     for event in pygame.event.get():
         if event.type == QUIT:
             running = False
@@ -230,7 +242,7 @@ while running:
         x, y = p
         x = x - 22
         y = y - 20
-        screen.blit(redbird, (x,y))
+        screen.blit(redbird, (x, y))
         pygame.draw.circle(screen, THECOLORS["blue"], p, int(ball.radius), 2)
 
     for ball in balls_to_remove:
@@ -249,7 +261,7 @@ while running:
     dt = 1.0/60.0
     for x in range(1):
         space.step(dt)
-
+    # Drawing second part of the sling
     rect = pygame.Rect(0, 0, 60, 200)
     screen.blit(sling_image, (120, 420), rect)
     # Flip screen
