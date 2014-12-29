@@ -1,7 +1,7 @@
 import os
 import sys
-current_path = os.getcwd()
-sys.path.insert(0, os.path.join(current_path, "../pymunk-4.0.0"))
+#current_path = os.getcwd()
+#sys.path.insert(0, os.path.join(current_path, "../pymunk-4.0.0"))
 
 import pygame
 from pygame.locals import *
@@ -123,7 +123,6 @@ def draw_poly(poly, element):
         p = Vec2d(p.x, flipy(p.y))
         angle_degrees = math.degrees(poly.body.angle) + 180
         angle_pure = math.degrees(poly.body.angle)
-        print angle_pure
         rotated_logo_img = pygame.transform.rotate(cropped, angle_degrees)
 
         offset = Vec2d(rotated_logo_img.get_size()) / 2.
@@ -133,7 +132,6 @@ def draw_poly(poly, element):
         np = p
         dy = math.sin(math.radians(angle_pure))*35
         dx = math.cos(math.radians(angle_pure))*35
-        print 'dx'+str(dx)
 
         screen.blit(rotated_logo_img, (np.x+dx,np.y-dy))
         #screen.blit(rotated_logo_img, (p.x,p.y))
@@ -146,7 +144,6 @@ def draw_poly(poly, element):
         p = Vec2d(p.x, flipy(p.y))
         angle_degrees = math.degrees(poly.body.angle) + 180
         angle_pure = math.degrees(poly.body.angle)
-        print angle_pure
         rotated_logo_img = pygame.transform.rotate(cropped, angle_degrees)
 
         offset = Vec2d(rotated_logo_img.get_size()) / 2.
@@ -156,7 +153,6 @@ def draw_poly(poly, element):
         np = p
         dx = math.sin(math.radians(-angle_pure))*34
         dy = math.cos(math.radians(-angle_pure))*34
-        print 'dx'+str(dx)
 
         #screen.blit(rotated_logo_img, (p.x,p.y))
         screen.blit(rotated_logo_img, (np.x+dx,np.y-dy))
@@ -225,7 +221,8 @@ while running:
     screen.fill((130, 200, 100))
     screen.blit(background2, (0, -50))
     # Drawing sling
-    sling_x, sling_y = 140, 450
+    sling_x, sling_y = 135, 450
+    sling2_x, sling2_y = 160, 450
     rect = pygame.Rect(50, 0, 70, 220)
     screen.blit(sling_image, (138, 420), rect)
     # Getting mouse position
@@ -233,17 +230,20 @@ while running:
     x_pygame_mouse, y_pygame_mouse = to_pygame2(x_pymunk, y_pymunk)
     y_pymunk = y_pymunk - 50
     y_pygame_mouse = y_pygame_mouse + 52
-    # pygame.draw.line(screen, (0, 0, 255), (sling_x, sling_y),
-    # (x_pygame_mouse, y_pygame_mouse), 3)
+    #pygame.draw.line(screen, (0, 0, 255), (sling_x, sling_y),
+    #(x_pygame_mouse, y_pygame_mouse), 3)
     # Fixing bird to the sling rope
     rope_lenght = 90
     v = vector((sling_x, sling_y), (x_pygame_mouse, y_pygame_mouse))
     uv = unit_vector(v)
     uv1 = uv[0]
     uv2 = uv[1]
-    pu = (uv1*rope_lenght+sling_x, uv2*rope_lenght+sling_y)
     mouse_distance = distance(sling_x, sling_y, x_pygame_mouse, y_pygame_mouse)
-    pygame.draw.line(screen, (0, 0, 0), (sling_x, sling_y), pu, 3)
+    pu = (uv1*rope_lenght+sling_x, uv2*rope_lenght+sling_y)
+    bigger_rope = 102
+    pu2 = (uv1*bigger_rope+sling_x, uv2*bigger_rope+sling_y)
+    #pygame.draw.line(screen, (0, 0, 0), (sling_x, sling_y), pu, 5)
+    #pygame.draw.line(screen, (0, 0, 0), (sling2_x, sling2_y), pu, 5)
     x_redbird = x_pygame_mouse - 20
     y_redbird = y_pygame_mouse - 20
     if mouse_distance > rope_lenght:
@@ -255,8 +255,15 @@ while running:
         x_pymunk, y_pymunk = from_pygame(Vec2d(pul), screen)
         y_pymunk -= 80
         x_pymunk += 20
+        pygame.draw.line(screen, (0, 0, 0), (sling2_x, sling2_y), pu2, 5)
+        screen.blit(redbird, pul)
+        pygame.draw.line(screen, (0, 0, 0), (sling_x, sling_y), pu2, 5)
     else:
+        mouse_distance+=10
+        pu3 = (uv1*mouse_distance+sling_x, uv2*mouse_distance+sling_y)
+        pygame.draw.line(screen, (0, 0, 0), (sling2_x, sling2_y), pu3, 5)
         screen.blit(redbird, (x_redbird, y_redbird))
+        pygame.draw.line(screen, (0, 0, 0), (sling_x, sling_y), pu3, 5)
     # Angle of impulse
     dy = y_pygame_mouse - sling_y
     dx = x_pygame_mouse - sling_x
