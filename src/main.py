@@ -23,7 +23,9 @@ background = pygame.image.load("../resources/images/background.png").convert_alp
 background1 = pygame.image.load("../resources/images/background1.jpg").convert_alpha()
 background2 = pygame.image.load("../resources/images/background3.png").convert_alpha()
 wood = pygame.image.load("../resources/images/wood.png").convert_alpha()
+wood2 = pygame.image.load("../resources/images/wood2.png").convert_alpha()
 sling_image = pygame.image.load("../resources/images/sling-3.png").convert_alpha()
+column_image = pygame.image.load("../resources/images/column.png").convert_alpha()
 clock = pygame.time.Clock()
 running = True
 # Physics stuff
@@ -33,8 +35,11 @@ space.gravity = (0.0, -700.0)
 
 balls = []
 polys = []
+beams = []
+columns = []
 poly_points = []
 ball_number = 0
+polys_dict = {}
 
 # walls
 static_body = pm.Body()
@@ -44,6 +49,10 @@ for line in static_lines:
     line.elasticity = 0.95
     line.friction = 1
 space.add(static_lines)
+
+def flipy(y):
+    """Small hack to convert chipmunk physics to pygame coordinates"""
+    return -y+600
 
 def vector(p0, p1):
     "(xo,yo), (x1,y1)"
@@ -72,7 +81,7 @@ def to_pygame2(x, y):
     return int(x), int(-y+600)
 
 
-def create_box(pos, size=8, height=60, mass=5.0):
+def create_box(pos, size=8, height=75, mass=5.0):
     box_points = map(Vec2d, [(-size, -size), (-size, height),
                              (size, height), (size, -size)])
     return create_poly(box_points, mass=mass, pos=pos)
@@ -96,7 +105,7 @@ def create_poly(points, mass=5.0, pos=(0, 0)):
     return shape
 
 
-def draw_poly(poly):
+def draw_poly(poly, element):
     ps = poly.get_vertices()
     ps.append(ps[0])
     ps = map(flipyv, ps)
@@ -105,8 +114,52 @@ def draw_poly(poly):
     else:
         color = THECOLORS["red"]
     pygame.draw.lines(screen, color, False, ps)
-    #rect = pygame.Rect(250, 380, 86, 100)
-    #screen.blit(wood, ps[0], rect)
+    if element == 'beams':
+        rect = pygame.Rect(251, 357, 86, 22)
+        #screen.blit(wood, (ps[0][0], ps[0][1]-20), rect)
+        cropped = wood.subsurface(rect).copy()
+        #rotated_logo_img = pygame.transform.rotate(crooped, angle_degrees)
+        p = poly.body.position
+        p = Vec2d(p.x, flipy(p.y))
+        angle_degrees = math.degrees(poly.body.angle) + 180
+        angle_pure = math.degrees(poly.body.angle)
+        print angle_pure
+        rotated_logo_img = pygame.transform.rotate(cropped, angle_degrees)
+
+        offset = Vec2d(rotated_logo_img.get_size()) / 2.
+        p = p - offset
+
+        #screen.blit(rotated_logo_img, p)
+        np = p
+        dy = math.sin(math.radians(angle_pure))*35
+        dx = math.cos(math.radians(angle_pure))*35
+        print 'dx'+str(dx)
+
+        screen.blit(rotated_logo_img, (np.x+dx,np.y-dy))
+        #screen.blit(rotated_logo_img, (p.x,p.y))
+    if element == 'columns':
+
+        rect = pygame.Rect(16, 252, 22, 84)
+        cropped = wood2.subsurface(rect).copy()
+        #rotated_logo_img = pygame.transform.rotate(crooped, angle_degrees)
+        p = poly.body.position
+        p = Vec2d(p.x, flipy(p.y))
+        angle_degrees = math.degrees(poly.body.angle) + 180
+        angle_pure = math.degrees(poly.body.angle)
+        print angle_pure
+        rotated_logo_img = pygame.transform.rotate(cropped, angle_degrees)
+
+        offset = Vec2d(rotated_logo_img.get_size()) / 2.
+        p = p - offset
+
+        #screen.blit(rotated_logo_img, p)
+        np = p
+        dx = math.sin(math.radians(-angle_pure))*34
+        dy = math.cos(math.radians(-angle_pure))*34
+        print 'dx'+str(dx)
+
+        #screen.blit(rotated_logo_img, (p.x,p.y))
+        screen.blit(rotated_logo_img, (np.x+dx,np.y-dy))
 
 
 def flipyv(v):
@@ -133,18 +186,18 @@ def load_music():
 
 def place_polys():
     p = (950, 80)
-    polys.append(create_box(pos=p))
+    columns.append(create_box(pos=p))
     p = (1020, 80)
-    polys.append(create_box(pos=p))
+    columns.append(create_box(pos=p))
     p = (950, 150)
-    polys.append(create_horizontal_box(pos=p))
+    beams.append(create_horizontal_box(pos=p))
     p = (950, 160)
-    polys.append(create_box(pos=p))
+    columns.append(create_box(pos=p))
     p = (1020, 160)
-    polys.append(create_box(pos=p))
+    columns.append(create_box(pos=p))
     p = (950, 230)
-    polys.append(create_horizontal_box(pos=p))
-
+    beams.append(create_horizontal_box(pos=p))
+    polys_dict['columns'] = columns
 
 def create_ball(distance, angle, x, y):
     # ticks_to_next_ball = 500
@@ -164,7 +217,7 @@ def create_ball(distance, angle, x, y):
     balls.append(shape)
 
 
-#load_music()
+load_music()
 place_polys()
 while running:
     # Drawing background
@@ -180,8 +233,8 @@ while running:
     x_pygame_mouse, y_pygame_mouse = to_pygame2(x_pymunk, y_pymunk)
     y_pymunk = y_pymunk - 50
     y_pygame_mouse = y_pygame_mouse + 52
-    pygame.draw.line(screen, (0, 0, 255), (sling_x, sling_y),
-                     (x_pygame_mouse, y_pygame_mouse), 3)
+    # pygame.draw.line(screen, (0, 0, 255), (sling_x, sling_y),
+    # (x_pygame_mouse, y_pygame_mouse), 3)
     # Fixing bird to the sling rope
     rope_lenght = 90
     v = vector((sling_x, sling_y), (x_pygame_mouse, y_pygame_mouse))
@@ -190,18 +243,18 @@ while running:
     uv2 = uv[1]
     pu = (uv1*rope_lenght+sling_x, uv2*rope_lenght+sling_y)
     mouse_distance = distance(sling_x, sling_y, x_pygame_mouse, y_pygame_mouse)
-    pygame.draw.line(screen, (255, 0, 0), (sling_x, sling_y), pu, 3)
+    pygame.draw.line(screen, (0, 0, 0), (sling_x, sling_y), pu, 3)
     x_redbird = x_pygame_mouse - 20
     y_redbird = y_pygame_mouse - 20
     if mouse_distance > rope_lenght:
         pux, puy = pu
-        pux = pux - 20
-        puy = puy - 20
+        pux -= 20
+        puy -= 20
         pul = pux, puy
         screen.blit(redbird, pul)
         x_pymunk, y_pymunk = from_pygame(Vec2d(pul), screen)
-        y_pymunk = y_pymunk - 80
-        x_pymunk = x_pymunk + 20
+        y_pymunk -= 80
+        x_pymunk += 20
     else:
         screen.blit(redbird, (x_redbird, y_redbird))
     # Angle of impulse
@@ -255,8 +308,12 @@ while running:
         p1 = to_pygame(pv1)
         p2 = to_pygame(pv2)
         pygame.draw.lines(screen, THECOLORS["lightgray"], False, [p1, p2])
-    for poly in polys:
-        draw_poly(poly)
+    #for poly in polys:
+        #draw_poly(poly)
+    for column in columns:
+        draw_poly(column, 'columns')
+    for beam in beams:
+        draw_poly(beam, 'beams')
     # Update physics
     dt = 1.0/60.0
     for x in range(1):
