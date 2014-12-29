@@ -1,7 +1,7 @@
 import os
 import sys
-#current_path = os.getcwd()
-#sys.path.insert(0, os.path.join(current_path, "../pymunk-4.0.0"))
+current_path = os.getcwd()
+sys.path.insert(0, os.path.join(current_path, "../pymunk-4.0.0"))
 
 import pygame
 from pygame.locals import *
@@ -26,6 +26,7 @@ wood = pygame.image.load("../resources/images/wood.png").convert_alpha()
 wood2 = pygame.image.load("../resources/images/wood2.png").convert_alpha()
 sling_image = pygame.image.load("../resources/images/sling-3.png").convert_alpha()
 column_image = pygame.image.load("../resources/images/column.png").convert_alpha()
+full_sprite = pygame.image.load("../resources/images/full-sprite.png").convert_alpha()
 clock = pygame.time.Clock()
 running = True
 # Physics stuff
@@ -34,6 +35,7 @@ space.gravity = (0.0, -700.0)
 #pygame.mouse.set_visible(0)
 
 balls = []
+pigs = []
 polys = []
 beams = []
 columns = []
@@ -41,6 +43,9 @@ poly_points = []
 ball_number = 0
 polys_dict = {}
 
+rect = pygame.Rect(181, 1050, 50, 50)
+cropped = full_sprite.subsurface(rect).copy()
+scaled = pygame.transform.scale(cropped, (30, 30))
 # walls
 static_body = pm.Body()
 static_lines = [pm.Segment(static_body, (0.0, 060.0), (1200.0, 060.0), 0.0)
@@ -212,9 +217,24 @@ def create_ball(distance, angle, x, y):
     space.add(body, shape)
     balls.append(shape)
 
+def create_pigs(x, y):
+    # ticks_to_next_ball = 500
+    mass = 5
+    radius = 14
+    inertia = pm.moment_for_circle(mass, 0, radius, (0, 0))
+    body = pm.Body(mass, inertia)
+    body.position = x, y
+    shape = pm.Circle(body, radius, (0, 0))
+    shape.elasticity = 0.95
+    shape.friction = 1
+    space.add(body, shape)
+    pigs.append(shape)
 
-load_music()
+
+#load_music()
 place_polys()
+create_pigs(980, 100)
+create_pigs(985, 180)
 while running:
     # Drawing background
     #screen.fill(THECOLORS["white"])
@@ -241,9 +261,6 @@ while running:
     mouse_distance = distance(sling_x, sling_y, x_pygame_mouse, y_pygame_mouse)
     pu = (uv1*rope_lenght+sling_x, uv2*rope_lenght+sling_y)
     bigger_rope = 102
-    pu2 = (uv1*bigger_rope+sling_x, uv2*bigger_rope+sling_y)
-    #pygame.draw.line(screen, (0, 0, 0), (sling_x, sling_y), pu, 5)
-    #pygame.draw.line(screen, (0, 0, 0), (sling2_x, sling2_y), pu, 5)
     x_redbird = x_pygame_mouse - 20
     y_redbird = y_pygame_mouse - 20
     if mouse_distance > rope_lenght:
@@ -255,6 +272,7 @@ while running:
         x_pymunk, y_pymunk = from_pygame(Vec2d(pul), screen)
         y_pymunk -= 80
         x_pymunk += 20
+        pu2 = (uv1*bigger_rope+sling_x, uv2*bigger_rope+sling_y)
         pygame.draw.line(screen, (0, 0, 0), (sling2_x, sling2_y), pu2, 5)
         screen.blit(redbird, pul)
         pygame.draw.line(screen, (0, 0, 0), (sling_x, sling_y), pu2, 5)
@@ -300,8 +318,8 @@ while running:
 
         p = to_pygame(ball.body.position)
         x, y = p
-        x = x - 22
-        y = y - 20
+        x -= 22
+        y -= 20
         screen.blit(redbird, (x, y))
         pygame.draw.circle(screen, THECOLORS["blue"], p, int(ball.radius), 2)
 
@@ -317,6 +335,16 @@ while running:
         pygame.draw.lines(screen, THECOLORS["lightgray"], False, [p1, p2])
     #for poly in polys:
         #draw_poly(poly)
+    pigs_to_remove = []
+    for pig in pigs:
+        if pig.body.position.y < 0: pigs_to_remove.append(ball)
+
+        p = to_pygame(pig.body.position)
+        x, y = p
+        x -= 22
+        y -= 20
+        screen.blit(scaled, (x+7, y+4))
+        pygame.draw.circle(screen, THECOLORS["blue"], p, int(pig.radius), 2)
     for column in columns:
         draw_poly(column, 'columns')
     for beam in beams:
