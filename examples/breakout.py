@@ -7,26 +7,24 @@ constant object speed, joints, collision handlers and post step callbacks.
 
 __version__ = "$Id:$"
 __docformat__ = "reStructuredText"
-import os, sys
-current_path = os.getcwd()
-sys.path.insert(0, os.path.join( current_path, "../pymunk-4.0.0" ) )
-
-import math, sys, random
+import sys
 import os
-
+import math, sys, random
 import pygame
 from pygame.locals import *
 from pygame.color import *
 
+current_path = os.getcwd()
+sys.path.insert(0, os.path.join( current_path, "../pymunk-4.0.0" ) )
+
 import pymunk
 from pymunk import Vec2d
 import pymunk.pygame_util
-width, height = 600,600
-
-
 import pymunk._chipmunk as cp
 import pymunk._chipmunk_ffi as cpffi
 import ctypes as ct
+
+width, height = 600,600
 
 def spawn_ball(space, position, direction):
     ball_body = pymunk.Body(1, pymunk.inf)

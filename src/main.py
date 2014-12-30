@@ -25,8 +25,15 @@ background2 = pygame.image.load("../resources/images/background3.png").convert_a
 wood = pygame.image.load("../resources/images/wood.png").convert_alpha()
 wood2 = pygame.image.load("../resources/images/wood2.png").convert_alpha()
 sling_image = pygame.image.load("../resources/images/sling-3.png").convert_alpha()
-column_image = pygame.image.load("../resources/images/column.png").convert_alpha()
+#column_image = pygame.image.load("../resources/images/column.png").convert_alpha()
 full_sprite = pygame.image.load("../resources/images/full-sprite.png").convert_alpha()
+rect = pygame.Rect(181, 1050, 50, 50)
+cropped = full_sprite.subsurface(rect).copy()
+pig_image = pygame.transform.scale(cropped, (30, 30))
+rect = pygame.Rect(251, 357, 86, 22)
+beam_image = wood.subsurface(rect).copy()
+rect = pygame.Rect(16, 252, 22, 84)
+column_image = wood2.subsurface(rect).copy()
 clock = pygame.time.Clock()
 running = True
 # Physics stuff
@@ -43,13 +50,9 @@ poly_points = []
 ball_number = 0
 polys_dict = {}
 
-rect = pygame.Rect(181, 1050, 50, 50)
-cropped = full_sprite.subsurface(rect).copy()
-scaled = pygame.transform.scale(cropped, (30, 30))
 # walls
 static_body = pm.Body()
-static_lines = [pm.Segment(static_body, (0.0, 060.0), (1200.0, 060.0), 0.0)
-                ]
+static_lines = [pm.Segment(static_body, (0.0, 060.0), (1200.0, 060.0), 0.0)]
 for line in static_lines:
     line.elasticity = 0.95
     line.friction = 1
@@ -120,20 +123,14 @@ def draw_poly(poly, element):
         color = THECOLORS["red"]
     pygame.draw.lines(screen, color, False, ps)
     if element == 'beams':
-        rect = pygame.Rect(251, 357, 86, 22)
-        #screen.blit(wood, (ps[0][0], ps[0][1]-20), rect)
-        cropped = wood.subsurface(rect).copy()
-        #rotated_logo_img = pygame.transform.rotate(crooped, angle_degrees)
         p = poly.body.position
         p = Vec2d(p.x, flipy(p.y))
         angle_degrees = math.degrees(poly.body.angle) + 180
         angle_pure = math.degrees(poly.body.angle)
-        rotated_logo_img = pygame.transform.rotate(cropped, angle_degrees)
+        rotated_logo_img = pygame.transform.rotate(beam_image, angle_degrees)
 
         offset = Vec2d(rotated_logo_img.get_size()) / 2.
         p = p - offset
-
-        #screen.blit(rotated_logo_img, p)
         np = p
         dy = math.sin(math.radians(angle_pure))*35
         dx = math.cos(math.radians(angle_pure))*35
@@ -142,14 +139,11 @@ def draw_poly(poly, element):
         #screen.blit(rotated_logo_img, (p.x,p.y))
     if element == 'columns':
 
-        rect = pygame.Rect(16, 252, 22, 84)
-        cropped = wood2.subsurface(rect).copy()
-        #rotated_logo_img = pygame.transform.rotate(crooped, angle_degrees)
         p = poly.body.position
         p = Vec2d(p.x, flipy(p.y))
         angle_degrees = math.degrees(poly.body.angle) + 180
         angle_pure = math.degrees(poly.body.angle)
-        rotated_logo_img = pygame.transform.rotate(cropped, angle_degrees)
+        rotated_logo_img = pygame.transform.rotate(column_image, angle_degrees)
 
         offset = Vec2d(rotated_logo_img.get_size()) / 2.
         p = p - offset
@@ -231,7 +225,7 @@ def create_pigs(x, y):
     pigs.append(shape)
 
 
-#load_music()
+load_music()
 place_polys()
 create_pigs(980, 100)
 create_pigs(985, 180)
@@ -343,7 +337,7 @@ while running:
         x, y = p
         x -= 22
         y -= 20
-        screen.blit(scaled, (x+7, y+4))
+        screen.blit(pig_image, (x+7, y+4))
         pygame.draw.circle(screen, THECOLORS["blue"], p, int(pig.radius), 2)
     for column in columns:
         draw_poly(column, 'columns')
