@@ -19,13 +19,12 @@ COLLTYPE_MOUSE = 1
 pygame.init()
 screen = pygame.display.set_mode((1200, 650))
 redbird = pygame.image.load("../resources/images/red-bird3.png").convert_alpha()
-background = pygame.image.load("../resources/images/background.png").convert_alpha()
-background1 = pygame.image.load("../resources/images/background1.jpg").convert_alpha()
+#background = pygame.image.load("../resources/images/background.png").convert_alpha()
+#background1 = pygame.image.load("../resources/images/background1.jpg").convert_alpha()
 background2 = pygame.image.load("../resources/images/background3.png").convert_alpha()
 wood = pygame.image.load("../resources/images/wood.png").convert_alpha()
 wood2 = pygame.image.load("../resources/images/wood2.png").convert_alpha()
 sling_image = pygame.image.load("../resources/images/sling-3.png").convert_alpha()
-#column_image = pygame.image.load("../resources/images/column.png").convert_alpha()
 full_sprite = pygame.image.load("../resources/images/full-sprite.png").convert_alpha()
 rect = pygame.Rect(181, 1050, 50, 50)
 cropped = full_sprite.subsurface(rect).copy()
@@ -58,9 +57,16 @@ for line in static_lines:
     line.friction = 1
 space.add(static_lines)
 
+
 def flipy(y):
     """Small hack to convert chipmunk physics to pygame coordinates"""
     return -y+600
+
+
+def flipyv(v):
+    h = 600
+    return int(v.x), int(-v.y+h)
+
 
 def vector(p0, p1):
     "(xo,yo), (x1,y1)"
@@ -135,8 +141,7 @@ def draw_poly(poly, element):
         dy = math.sin(math.radians(angle_pure))*35
         dx = math.cos(math.radians(angle_pure))*35
 
-        screen.blit(rotated_logo_img, (np.x+dx,np.y-dy))
-        #screen.blit(rotated_logo_img, (p.x,p.y))
+        screen.blit(rotated_logo_img, (np.x+dx, np.y-dy))
     if element == 'columns':
 
         p = poly.body.position
@@ -147,19 +152,11 @@ def draw_poly(poly, element):
 
         offset = Vec2d(rotated_logo_img.get_size()) / 2.
         p = p - offset
-
-        #screen.blit(rotated_logo_img, p)
         np = p
         dx = math.sin(math.radians(-angle_pure))*34
         dy = math.cos(math.radians(-angle_pure))*34
 
-        #screen.blit(rotated_logo_img, (p.x,p.y))
         screen.blit(rotated_logo_img, (np.x+dx,np.y-dy))
-
-
-def flipyv(v):
-    h = 600
-    return int(v.x), int(-v.y+h)
 
 
 def distance(xo, yo, x, y):
@@ -194,6 +191,7 @@ def place_polys():
     beams.append(create_horizontal_box(pos=p))
     polys_dict['columns'] = columns
 
+
 def create_ball(distance, angle, x, y):
     # ticks_to_next_ball = 500
     mass = 5
@@ -210,6 +208,7 @@ def create_ball(distance, angle, x, y):
     shape.friction = 1
     space.add(body, shape)
     balls.append(shape)
+
 
 def create_pigs(x, y):
     # ticks_to_next_ball = 500
