@@ -13,8 +13,6 @@ import pymunk.util as u
 from pymunk.pygame_util import from_pygame
 
 # colision branch
-COLLTYPE_DEFAULT = 0
-COLLTYPE_MOUSE = 1
 
 pygame.init()
 screen = pygame.display.set_mode((1200, 650))
@@ -55,6 +53,7 @@ static_lines = [pm.Segment(static_body, (0.0, 060.0), (1200.0, 060.0), 0.0)]
 for line in static_lines:
     line.elasticity = 0.95
     line.friction = 1
+    line.collision_type = 3
 space.add(static_lines)
 
 
@@ -114,7 +113,8 @@ def create_poly(points, mass=5.0, pos=(0, 0)):
     body.position = Vec2d(pos)
     shape = pm.Poly(body, points, Vec2d(0, 0))
     shape.friction = 0.5
-    shape.collision_type = COLLTYPE_DEFAULT
+    shape.collision_type = 2
+    #shape.collision_type = COLLTYPE_DEFAULT
     space.add(body, shape)
     return shape
 
@@ -206,6 +206,7 @@ def create_ball(distance, angle, x, y):
     shape = pm.Circle(body, radius, (0, 0))
     shape.elasticity = 0.95
     shape.friction = 1
+    shape.collision_type = 0
     space.add(body, shape)
     balls.append(shape)
 
@@ -220,10 +221,47 @@ def create_pigs(x, y):
     shape = pm.Circle(body, radius, (0, 0))
     shape.elasticity = 0.95
     shape.friction = 1
+    shape.collision_type = 1
     space.add(body, shape)
     pigs.append(shape)
 
 
+def post_solve_bird_pig(space, arbiter, surface=screen):
+    #if arbiter.total_impulse.length > 300:
+    a,b = arbiter.shapes
+    #position = arbiter.contacts[0].position
+    #b.collision_type = 0
+    #b.group = 1
+    arrow_body = a.body
+    other_body = b.body
+    p = to_pygame(arrow_body.position)
+    p2 = to_pygame(other_body.position)
+    r = 30
+    pygame.draw.circle(surface, THECOLORS["black"], p, r, 4)
+    pygame.draw.circle(surface, THECOLORS["red"], p2, r, 4)
+    if b in pigs:
+        pigs.remove(b)
+
+def post_solve_bird_wood(space, arbiter):
+    if arbiter.total_impulse.length > 1300:
+        a,b = arbiter.shapes
+        #position = arbiter.contacts[0].position
+        #b.collision_type = 0
+        #b.group = 1
+        arrow_body = a.body
+        other_body = b.body
+        space.remove(b, b.body)
+        if b in columns:
+            columns.remove(b)
+        if b in beams:
+            beams.remove(b)
+        #balls.remove(ball)
+        #space.add_post_step_callback(stick_arrow_to_target, arrow_body, other_body, position, space)
+
+space.add_collision_handler(0, 1, post_solve=post_solve_bird_pig)
+space.add_collision_handler(0, 2, post_solve=post_solve_bird_wood)
+#space.add_collision_handler(0, 0, post_solve=draw_collision)
+#space.add_collision_handler(0, 0, None, None, draw_collision, None, surface=screen)
 load_music()
 place_polys()
 create_pigs(980, 100)
