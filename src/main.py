@@ -261,8 +261,6 @@ def post_solve_bird_wood(space, arbiter):
 
 space.add_collision_handler(0, 1, post_solve=post_solve_bird_pig)
 space.add_collision_handler(0, 2, post_solve=post_solve_bird_wood)
-#space.add_collision_handler(0, 0, post_solve=draw_collision)
-#space.add_collision_handler(0, 0, None, None, draw_collision, None, surface=screen)
 load_music()
 place_polys()
 create_pigs(980, 100)
