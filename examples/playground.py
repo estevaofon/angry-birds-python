@@ -276,6 +276,7 @@ class PhysicsDemo:
         if pygame.key.get_mods() & KMOD_SHIFT and pygame.mouse.get_pressed()[2]:
             p = self.flipyv(Vec2d(mpos))
             self.poly_points.append(p)
+            print 'oi'
         self.shape_to_remove = self.space.point_query_first( self.flipyv(Vec2d(mpos)) )
 
         ### Update physics

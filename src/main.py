@@ -11,8 +11,8 @@ from pymunk import Vec2d
 import math
 import pymunk.util as u
 from pymunk.pygame_util import from_pygame
+import time
 
-# colision branch
 
 pygame.init()
 screen = pygame.display.set_mode((1200, 650))
@@ -46,6 +46,16 @@ columns = []
 poly_points = []
 ball_number = 0
 polys_dict = {}
+mouse_distance = 0
+rope_lenght = 90
+angle = 0
+x_pymunk = 0
+y_pymunk = 0
+x_pygame_mouse = 0
+y_pygame_mouse = 0
+count = 0
+mouse_pressed = False
+t1 = 0
 
 # walls
 static_body = pm.Body()
@@ -227,15 +237,11 @@ def create_pigs(x, y):
 
 
 def post_solve_bird_pig(space, arbiter, surface=screen):
-    #if arbiter.total_impulse.length > 300:
     a,b = arbiter.shapes
-    #position = arbiter.contacts[0].position
-    #b.collision_type = 0
-    #b.group = 1
-    arrow_body = a.body
-    other_body = b.body
-    p = to_pygame(arrow_body.position)
-    p2 = to_pygame(other_body.position)
+    bird_body = a.body
+    pig_body = b.body
+    p = to_pygame(bird_body.position)
+    p2 = to_pygame(pig_body.position)
     r = 30
     pygame.draw.circle(surface, THECOLORS["black"], p, r, 4)
     pygame.draw.circle(surface, THECOLORS["red"], p2, r, 4)
@@ -244,46 +250,30 @@ def post_solve_bird_pig(space, arbiter, surface=screen):
     space.remove(b, b.body)
 
 def post_solve_bird_wood(space, arbiter):
-    if arbiter.total_impulse.length > 1300:
+    if arbiter.total_impulse.length > 1200:
         a,b = arbiter.shapes
-        #position = arbiter.contacts[0].position
-        #b.collision_type = 0
-        #b.group = 1
-        arrow_body = a.body
-        other_body = b.body
         if b in columns:
             columns.remove(b)
         if b in beams:
             beams.remove(b)
         space.remove(b, b.body)
-        #balls.remove(ball)
-        #space.add_post_step_callback(stick_arrow_to_target, arrow_body, other_body, position, space)
 
-space.add_collision_handler(0, 1, post_solve=post_solve_bird_pig)
-space.add_collision_handler(0, 2, post_solve=post_solve_bird_wood)
-load_music()
-place_polys()
-create_pigs(980, 100)
-create_pigs(985, 180)
-while running:
-    # Drawing background
-    #screen.fill(THECOLORS["white"])
-    screen.fill((130, 200, 100))
-    screen.blit(background2, (0, -50))
-    # Drawing sling
-    sling_x, sling_y = 135, 450
-    sling2_x, sling2_y = 160, 450
-    rect = pygame.Rect(50, 0, 70, 220)
-    screen.blit(sling_image, (138, 420), rect)
+
+def sling_action():
+    global mouse_distance
+    global rope_lenght
+    global angle
+    global x_pymunk
+    global y_pymunk
+    global x_pygame_mouse
+    global y_pygame_mouse
     # Getting mouse position
     x_pymunk, y_pymunk = from_pygame(Vec2d(pygame.mouse.get_pos()), screen)
     x_pygame_mouse, y_pygame_mouse = to_pygame2(x_pymunk, y_pymunk)
-    y_pymunk = y_pymunk - 50
     y_pygame_mouse = y_pygame_mouse + 52
     #pygame.draw.line(screen, (0, 0, 255), (sling_x, sling_y),
     #(x_pygame_mouse, y_pygame_mouse), 3)
     # Fixing bird to the sling rope
-    rope_lenght = 90
     v = vector((sling_x, sling_y), (x_pygame_mouse, y_pygame_mouse))
     uv = unit_vector(v)
     uv1 = uv[0]
@@ -299,9 +289,6 @@ while running:
         puy -= 20
         pul = pux, puy
         screen.blit(redbird, pul)
-        x_pymunk, y_pymunk = from_pygame(Vec2d(pul), screen)
-        y_pymunk -= 80
-        x_pymunk += 20
         pu2 = (uv1*bigger_rope+sling_x, uv2*bigger_rope+sling_y)
         pygame.draw.line(screen, (0, 0, 0), (sling2_x, sling2_y), pu2, 5)
         screen.blit(redbird, pul)
@@ -318,6 +305,24 @@ while running:
     if dx == 0:
         dx = 0.00000000000001
     angle = math.atan((float(dy))/dx)
+
+
+space.add_collision_handler(0, 1, post_solve=post_solve_bird_pig)
+space.add_collision_handler(0, 2, post_solve=post_solve_bird_wood)
+load_music()
+place_polys()
+create_pigs(980, 100)
+create_pigs(985, 180)
+
+while running:
+    # Drawing background
+    #screen.fill(THECOLORS["white"])
+    screen.fill((130, 200, 100))
+    screen.blit(background2, (0, -50))
+    sling_x, sling_y = 135, 450
+    sling2_x, sling2_y = 160, 450
+    rect = pygame.Rect(50, 0, 70, 220)
+    screen.blit(sling_image, (138, 420), rect)
     # Input handling
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -326,21 +331,31 @@ while running:
             running = False
         elif event.type == KEYDOWN and event.key == K_p:
             pygame.image.save(screen, "bouncing_balls.png")
-        elif event.type == MOUSEBUTTONDOWN and event.button == 1:
-            start_time = pygame.time.get_ticks()
+        if pygame.mouse.get_pressed()[0]:
+            mouse_pressed = True
+        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            mouse_pressed = False
+            t1 = time.time()
             if pygame.key.get_mods() & KMOD_SHIFT:
                 p = flipyv(Vec2d(event.pos))
                 polys.append(create_horizontal_box(pos=p))
             else:
+                xo = 154
+                yo = 156
                 if mouse_distance > rope_lenght:
                     mouse_distance = rope_lenght
                 if x_pygame_mouse < sling_x+5:
-                    create_ball(mouse_distance, angle, x_pymunk, y_pymunk)
+                    create_ball(mouse_distance, angle, xo, yo)
                 else:
-                    create_ball(-mouse_distance, angle, x_pymunk, y_pymunk)
-        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            pass
+                    create_ball(-mouse_distance, angle, xo, yo)
 
+    if mouse_pressed:
+        sling_action()
+    else:
+        if time.time() - t1 > 1:
+            screen.blit(redbird, (130, 426))
+        else:
+            pygame.draw.line(screen, (0, 0, 0), (sling_x, sling_y-8), (sling2_x,sling2_y-7), 5)
     # Draw stuff
     balls_to_remove = []
     for ball in balls:
