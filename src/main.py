@@ -241,6 +241,7 @@ def post_solve_bird_pig(space, arbiter, surface=screen):
     pygame.draw.circle(surface, THECOLORS["red"], p2, r, 4)
     if b in pigs:
         pigs.remove(b)
+    space.remove(b, b.body)
 
 def post_solve_bird_wood(space, arbiter):
     if arbiter.total_impulse.length > 1300:
@@ -250,11 +251,11 @@ def post_solve_bird_wood(space, arbiter):
         #b.group = 1
         arrow_body = a.body
         other_body = b.body
-        space.remove(b, b.body)
         if b in columns:
             columns.remove(b)
         if b in beams:
             beams.remove(b)
+        space.remove(b, b.body)
         #balls.remove(ball)
         #space.add_post_step_callback(stick_arrow_to_target, arrow_body, other_body, position, space)
 
