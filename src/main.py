@@ -104,24 +104,15 @@ def to_pygame2(x, y):
     return int(x), int(-y+600)
 
 
-def create_box(pos, size=8, height=75, mass=5.0):
-    box_points = map(Vec2d, [(-size, -size), (-size, height),
-                             (size, height), (size, -size)])
-    return create_poly(box_points, mass=mass, pos=pos)
-
-
-def create_horizontal_box(pos, size=8, width=80, mass=5.0):
-    box_points = map(Vec2d, [(-size, -size), (-size, size),
-                             (width, size), (width, -size)])
-    return create_poly(box_points, mass=mass, pos=pos)
-
-
-def create_poly(points, mass=5.0, pos=(0, 0)):
-    moment = pm.moment_for_poly(mass, points, Vec2d(0, 0))
-    # moment = 1000
+def create_poly(pos, length, height, mass=5.0):
+    #moment = pm.moment_for_poly(mass, points, Vec2d(0, 0))
+    moment = 1000
     body = pm.Body(mass, moment)
     body.position = Vec2d(pos)
-    shape = pm.Poly(body, points, Vec2d(0, 0))
+    #shape = pm.Poly(body, points, Vec2d(0, 0))
+    #shape = pm.Poly(body, points, Vec2d(0, 0))
+    shape = pm.Poly.create_box(body, (length, height))
+    shape.color = THECOLORS['blue']
     shape.friction = 0.5
     shape.collision_type = 2
     #shape.collision_type = COLLTYPE_DEFAULT
@@ -148,10 +139,9 @@ def draw_poly(poly, element):
         offset = Vec2d(rotated_logo_img.get_size()) / 2.
         p = p - offset
         np = p
-        dy = math.sin(math.radians(angle_pure))*35
-        dx = math.cos(math.radians(angle_pure))*35
-
-        screen.blit(rotated_logo_img, (np.x+dx, np.y-dy))
+        #dy = math.sin(math.radians(angle_pure))*35
+        #dx = math.cos(math.radians(angle_pure))*35
+        screen.blit(rotated_logo_img, (np.x, np.y))
     if element == 'columns':
 
         p = poly.body.position
@@ -163,10 +153,9 @@ def draw_poly(poly, element):
         offset = Vec2d(rotated_logo_img.get_size()) / 2.
         p = p - offset
         np = p
-        dx = math.sin(math.radians(-angle_pure))*34
-        dy = math.cos(math.radians(-angle_pure))*34
-
-        screen.blit(rotated_logo_img, (np.x+dx,np.y-dy))
+        #dx = math.sin(math.radians(-angle_pure))*34
+        #dy = math.cos(math.radians(-angle_pure))*34
+        screen.blit(rotated_logo_img, (np.x,np.y))
 
 
 def distance(xo, yo, x, y):
@@ -188,18 +177,18 @@ def load_music():
 
 def place_polys():
     p = (950, 80)
-    columns.append(create_box(pos=p))
-    p = (1020, 80)
-    columns.append(create_box(pos=p))
-    p = (950, 150)
-    beams.append(create_horizontal_box(pos=p))
-    p = (950, 160)
-    columns.append(create_box(pos=p))
-    p = (1020, 160)
-    columns.append(create_box(pos=p))
-    p = (950, 230)
-    beams.append(create_horizontal_box(pos=p))
-    polys_dict['columns'] = columns
+    columns.append(create_poly(p, 20, 85))
+    p = (1010, 80)
+    columns.append(create_poly(p, 20, 85))
+    p = (980, 150)
+    beams.append(create_poly(p, 85, 20))
+    p = (950, 200)
+    columns.append(create_poly(p, 20, 85))
+    p = (1010, 200)
+    columns.append(create_poly(p, 20, 85))
+    p = (980, 240)
+    beams.append(create_poly(p, 85, 20))
+    #polys_dict['columns'] = columns
 
 
 def create_ball(distance, angle, x, y):
@@ -382,7 +371,7 @@ while running:
         #draw_poly(poly)
     pigs_to_remove = []
     for pig in pigs:
-        if pig.body.position.y < 0: pigs_to_remove.append(ball)
+        if pig.body.position.y < 0: pigs_to_remove.append(pig)
 
         p = to_pygame(pig.body.position)
         x, y = p
