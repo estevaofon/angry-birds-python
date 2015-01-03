@@ -9,7 +9,6 @@ from pygame.color import *
 import pymunk as pm
 from pymunk import Vec2d
 import math
-import pymunk.util as u
 from pymunk.pygame_util import from_pygame
 import time
 
@@ -124,16 +123,12 @@ def draw_poly(poly, element):
     ps = poly.get_vertices()
     ps.append(ps[0])
     ps = map(flipyv, ps)
-    if u.is_clockwise(ps):
-        color = THECOLORS["green"]
-    else:
-        color = THECOLORS["red"]
+    color = THECOLORS["red"]
     pygame.draw.lines(screen, color, False, ps)
     if element == 'beams':
         p = poly.body.position
         p = Vec2d(p.x, flipy(p.y))
         angle_degrees = math.degrees(poly.body.angle) + 180
-        angle_pure = math.degrees(poly.body.angle)
         rotated_logo_img = pygame.transform.rotate(beam_image, angle_degrees)
 
         offset = Vec2d(rotated_logo_img.get_size()) / 2.
@@ -147,7 +142,6 @@ def draw_poly(poly, element):
         p = poly.body.position
         p = Vec2d(p.x, flipy(p.y))
         angle_degrees = math.degrees(poly.body.angle) + 180
-        angle_pure = math.degrees(poly.body.angle)
         rotated_logo_img = pygame.transform.rotate(column_image, angle_degrees)
 
         offset = Vec2d(rotated_logo_img.get_size()) / 2.
