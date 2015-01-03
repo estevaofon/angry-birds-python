@@ -1,17 +1,95 @@
 import os
 import sys
+import math
+import time
+import pygame
 current_path = os.getcwd()
 sys.path.insert(0, os.path.join(current_path, "../pymunk-4.0.0"))
-
-import pygame
-from pygame.locals import *
-from pygame.color import *
 import pymunk as pm
 from pymunk import Vec2d
-import math
 from pymunk.pygame_util import from_pygame
-import time
 
+
+class Bird():
+    def __init__(self, distance, angle, x, y):
+        self.life = 20
+        mass = 5
+        radius = 12
+        inertia = pm.moment_for_circle(mass, 0, radius, (0, 0))
+        body = pm.Body(mass, inertia)
+        body.position = x, y
+        power = distance * 53
+        impulse = power * Vec2d(1, 0)
+        angle = -angle
+        body.apply_impulse(impulse.rotated(angle))
+        shape = pm.Circle(body, radius, (0, 0))
+        shape.elasticity = 0.95
+        shape.friction = 1
+        shape.collision_type = 0
+        space.add(body, shape)
+        self.body = body
+        self.shape = shape
+
+
+class Pig():
+    def __init__(self, x, y):
+        self.life = 20
+        mass = 5
+        radius = 14
+        inertia = pm.moment_for_circle(mass, 0, radius, (0, 0))
+        body = pm.Body(mass, inertia)
+        body.position = x, y
+        shape = pm.Circle(body, radius, (0, 0))
+        shape.elasticity = 0.95
+        shape.friction = 1
+        shape.collision_type = 1
+        space.add(body, shape)
+        self.body = body
+        self.shape = shape
+
+
+class Polygon():
+    def __init__(self, pos, length, height, mass=5.0):
+        moment = 1000
+        body = pm.Body(mass, moment)
+        body.position = Vec2d(pos)
+        shape = pm.Poly.create_box(body, (length, height))
+        shape.color = BLUE
+        shape.friction = 0.5
+        shape.collision_type = 2
+        space.add(body, shape)
+        self.body = body
+        self.shape = shape
+
+    def draw_poly(self, element):
+        """Draw beams and columns"""
+        poly = self.shape
+        ps = poly.get_vertices()
+        ps.append(ps[0])
+        ps = map(to_pygame, ps)
+        ps = list(ps)
+        color = RED
+        pygame.draw.lines(screen, color, False, ps)
+        if element == 'beams':
+            p = poly.body.position
+            p = Vec2d(p.x, flipy(p.y))
+            angle_degrees = math.degrees(poly.body.angle) + 180
+            rotated_logo_img = pygame.transform.rotate(beam_image,
+                                                       angle_degrees)
+            offset = Vec2d(rotated_logo_img.get_size()) / 2.
+            p = p - offset
+            np = p
+            screen.blit(rotated_logo_img, (np.x, np.y))
+        if element == 'columns':
+            p = poly.body.position
+            p = Vec2d(p.x, flipy(p.y))
+            angle_degrees = math.degrees(poly.body.angle) + 180
+            rotated_logo_img = pygame.transform.rotate(column_image,
+                                                       angle_degrees)
+            offset = Vec2d(rotated_logo_img.get_size()) / 2.
+            p = p - offset
+            np = p
+            screen.blit(rotated_logo_img, (np.x, np.y))
 
 pygame.init()
 screen = pygame.display.set_mode((1200, 650))
@@ -55,94 +133,9 @@ y_pygame_mouse = 0
 count = 0
 mouse_pressed = False
 t1 = 0
-
-
-class Bird():
-    def __init__(self, distance, angle, x, y):
-        self.life = 20
-        mass = 5
-        radius = 12
-        inertia = pm.moment_for_circle(mass, 0, radius, (0, 0))
-        body = pm.Body(mass, inertia)
-        body.position = x, y
-        power = distance * 53
-        impulse = power * Vec2d(1, 0)
-        angle = -angle
-        body.apply_impulse(impulse.rotated(angle))
-        shape = pm.Circle(body, radius, (0, 0))
-        shape.elasticity = 0.95
-        shape.friction = 1
-        shape.collision_type = 0
-        space.add(body, shape)
-        self.body = body
-        self.shape = shape
-
-
-class Pig():
-    def __init__(self, x, y):
-        self.life = 20
-        mass = 5
-        radius = 14
-        inertia = pm.moment_for_circle(mass, 0, radius, (0, 0))
-        body = pm.Body(mass, inertia)
-        body.position = x, y
-        shape = pm.Circle(body, radius, (0, 0))
-        shape.elasticity = 0.95
-        shape.friction = 1
-        shape.collision_type = 1
-        space.add(body, shape)
-        self.body = body
-        self.shape = shape
-
-
-class Polygon():
-    def __init__(self, pos, length, height, mass=5.0):
-        """Create the body and shape of a polygon"""
-        moment = 1000
-        body = pm.Body(mass, moment)
-        body.position = Vec2d(pos)
-        shape = pm.Poly.create_box(body, (length, height))
-        shape.color = THECOLORS['blue']
-        shape.friction = 0.5
-        shape.collision_type = 2
-        space.add(body, shape)
-        self.body = body
-        self.shape = shape
-
-    def draw_poly(self, element):
-        poly = self.shape
-        """Draw beams and columns"""
-        ps = poly.get_vertices()
-        ps.append(ps[0])
-        ps = map(flipyv, ps)
-        ps = list(ps)
-        color = THECOLORS["red"]
-        pygame.draw.lines(screen, color, False, ps)
-        if element == 'beams':
-            p = poly.body.position
-            p = Vec2d(p.x, flipy(p.y))
-            angle_degrees = math.degrees(poly.body.angle) + 180
-            rotated_logo_img = pygame.transform.rotate(beam_image, angle_degrees)
-
-            offset = Vec2d(rotated_logo_img.get_size()) / 2.
-            p = p - offset
-            np = p
-            # dy = math.sin(math.radians(angle_pure))*35
-            # dx = math.cos(math.radians(angle_pure))*35
-            screen.blit(rotated_logo_img, (np.x, np.y))
-        if element == 'columns':
-
-            p = poly.body.position
-            p = Vec2d(p.x, flipy(p.y))
-            angle_degrees = math.degrees(poly.body.angle) + 180
-            rotated_logo_img = pygame.transform.rotate(column_image, angle_degrees)
-
-            offset = Vec2d(rotated_logo_img.get_size()) / 2.
-            p = p - offset
-            np = p
-            # dx = math.sin(math.radians(-angle_pure))*34
-            # dy = math.cos(math.radians(-angle_pure))*34
-            screen.blit(rotated_logo_img, (np.x, np.y))
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+BLACK = (0, 0, 0)
 
 # walls
 static_body = pm.Body()
@@ -155,16 +148,17 @@ space.add(static_lines)
 
 
 def flipy(y):
-    """Small hack to convert chipmunk physics to pygame coordinates"""
+    """Convert chipmunk physics to pygame coordinates"""
     return -y+600
 
 
-def flipyv(v):
-    h = 600
-    return int(v.x), int(-v.y+h)
+def to_pygame(p):
+    """Convert pymunk to pygame coordinates"""
+    return int(p.x), int(-p.y+600)
 
 
 def vector(p0, p1):
+    """Return the vector of the points"""
     "(xo,yo), (x1,y1)"
     a = p1[0] - p0[0]
     b = p1[1] - p0[1]
@@ -172,6 +166,7 @@ def vector(p0, p1):
 
 
 def unit_vector(v):
+    """Return the unit vector of the points"""
     "(a,b)"
     h = ((v[0]**2)+(v[1]**2))**0.5
     if h == 0:
@@ -181,20 +176,8 @@ def unit_vector(v):
     return (ua, ub)
 
 
-def to_pygame(p):
-    """Small hack to convert pymunk to pygame coordinates"""
-    return int(p.x), int(-p.y+600)
-
-
-def to_pygame2(x, y):
-    """Small hack to convert pymunk to pygame coordinates"""
-    return int(x), int(-y+600)
-
-
 def distance(xo, yo, x, y):
-    """
-    distance between players
-    """
+    """distance between points"""
     dx = x - xo
     dy = y - yo
     d = ((dx ** 2) + (dy ** 2)) ** 0.5
@@ -209,6 +192,7 @@ def load_music():
 
 
 def level_1():
+    """ Set up level 1"""
     pig1 = Pig(980, 100)
     pig2 = Pig(985, 185)
     pigs.append(pig1)
@@ -228,14 +212,15 @@ def level_1():
 
 
 def post_solve_bird_pig(space, arbiter, surface=screen):
+    """Collision between bird and pig"""
     a, b = arbiter.shapes
     bird_body = a.body
     pig_body = b.body
     p = to_pygame(bird_body.position)
     p2 = to_pygame(pig_body.position)
     r = 30
-    pygame.draw.circle(surface, THECOLORS["black"], p, r, 4)
-    pygame.draw.circle(surface, THECOLORS["red"], p2, r, 4)
+    pygame.draw.circle(surface, BLACK, p, r, 4)
+    pygame.draw.circle(surface, RED, p2, r, 4)
     pigs_to_remove = []
     for pig in pigs:
         if pig_body == pig.body:
@@ -247,6 +232,7 @@ def post_solve_bird_pig(space, arbiter, surface=screen):
 
 
 def post_solve_bird_wood(space, arbiter):
+    """Collision between bird and wood"""
     poly_to_remove = []
     if arbiter.total_impulse.length > 1100:
         a, b = arbiter.shapes
@@ -261,15 +247,11 @@ def post_solve_bird_wood(space, arbiter):
                 columns.remove(poly)
             if poly in beams:
                 beams.remove(poly)
-       # if b in columns:
-            #columns.remove(b)
-        #if b in beams:
-            #beams.remove(b)
         space.remove(b, b.body)
 
 
 def post_solve_pig_wood(space, arbiter):
-    #print arbiter.total_impulse.length
+    """Collision between pig and wood"""
     pigs_to_remove = []
     if arbiter.total_impulse.length > 750:
         pig_shape, wood_shape = arbiter.shapes
@@ -284,6 +266,7 @@ def post_solve_pig_wood(space, arbiter):
 
 
 def sling_action():
+    """Set up sling behavior"""
     global mouse_distance
     global rope_lenght
     global angle
@@ -293,7 +276,7 @@ def sling_action():
     global y_pygame_mouse
     # Getting mouse position
     x_pymunk, y_pymunk = from_pygame(Vec2d(pygame.mouse.get_pos()), screen)
-    x_pygame_mouse, y_pygame_mouse = to_pygame2(x_pymunk, y_pymunk)
+    x_pygame_mouse, y_pygame_mouse = (x_pymunk, flipy(y_pymunk))
     y_pygame_mouse = y_pygame_mouse + 52
     # Fixing bird to the sling rope
     v = vector((sling_x, sling_y), (x_pygame_mouse, y_pygame_mouse))
@@ -347,9 +330,9 @@ while running:
     screen.blit(sling_image, (138, 420), rect)
     # Input handling
     for event in pygame.event.get():
-        if event.type == QUIT:
+        if event.type == pygame.QUIT:
             running = False
-        elif event.type == KEYDOWN and event.key == K_ESCAPE:
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             running = False
         if pygame.mouse.get_pressed()[0]:
             mouse_pressed = True
@@ -366,8 +349,6 @@ while running:
             else:
                 bird = Bird(-mouse_distance, angle, xo, yo)
                 birds.append(bird)
-    #print "pig1.life="+str(pig1.life)
-    #print "pig2.life="+str(pig2.life)
     if mouse_pressed:
         sling_action()
     else:
@@ -377,7 +358,6 @@ while running:
             pygame.draw.line(screen, (0, 0, 0), (sling_x, sling_y-8),
                              (sling2_x, sling2_y-7), 5)
     # Draw stuff
-    #for ball in balls:
     birds_to_remove = []
     pigs_to_remove = []
     for bird in birds:
@@ -389,8 +369,8 @@ while running:
         x -= 22
         y -= 20
         screen.blit(redbird, (x, y))
-        pygame.draw.circle(screen, THECOLORS["blue"], p, int(bird.shape.radius), 2)
-
+        pygame.draw.circle(screen, BLUE,
+                           p, int(bird.shape.radius), 2)
     for bird in birds_to_remove:
         space.remove(bird.shape, bird.shape.body)
         birds.remove(bird)
@@ -404,12 +384,11 @@ while running:
         pv2 = body.position + line.b.rotated(body.angle)
         p1 = to_pygame(pv1)
         p2 = to_pygame(pv2)
-        pygame.draw.lines(screen, THECOLORS["lightgray"], False, [p1, p2])
-    #for pig in pigs:
+        pygame.draw.lines(screen, BLACK, False, [p1, p2])
     i = 0
     for pig in pigs:
         i += 1
-        #print (i,pig.life)
+        # print (i,pig.life)
         pig = pig.shape
         if pig.body.position.y < 0:
             pigs_to_remove.append(pig)
@@ -419,11 +398,7 @@ while running:
         x -= 22
         y -= 20
         screen.blit(pig_image, (x+7, y+4))
-        pygame.draw.circle(screen, THECOLORS["blue"], p, int(pig.radius), 2)
-    #for column in columns:
-        #draw_poly(column, 'columns')
-    #for beam in beams:
-        #draw_poly(beam, 'beams')
+        pygame.draw.circle(screen, BLUE, p, int(pig.radius), 2)
     for column in columns:
         column.draw_poly('columns')
     for beam in beams:
