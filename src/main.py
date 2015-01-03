@@ -123,6 +123,7 @@ def draw_poly(poly, element):
     ps = poly.get_vertices()
     ps.append(ps[0])
     ps = map(flipyv, ps)
+    ps = list(ps)
     color = THECOLORS["red"]
     pygame.draw.lines(screen, color, False, ps)
     if element == 'beams':
