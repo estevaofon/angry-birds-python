@@ -13,6 +13,49 @@ from pymunk.pygame_util import from_pygame
 import time
 
 
+pygame.init()
+screen = pygame.display.set_mode((1200, 650))
+wood = pygame.image.load("../resources/images/wood.png").convert_alpha()
+wood2 = pygame.image.load("../resources/images/wood2.png").convert_alpha()
+rect = pygame.Rect(251, 357, 86, 22)
+beam_image = wood.subsurface(rect).copy()
+rect = pygame.Rect(16, 252, 22, 84)
+column_image = wood2.subsurface(rect).copy()
+redbird = pygame.image.load("../resources/images/red-bird3.png").convert_alpha()
+background2 = pygame.image.load(
+    "../resources/images/background3.png").convert_alpha()
+sling_image = pygame.image.load(
+    "../resources/images/sling-3.png").convert_alpha()
+full_sprite = pygame.image.load(
+    "../resources/images/full-sprite.png").convert_alpha()
+rect = pygame.Rect(181, 1050, 50, 50)
+cropped = full_sprite.subsurface(rect).copy()
+pig_image = pygame.transform.scale(cropped, (30, 30))
+clock = pygame.time.Clock()
+running = True
+# the base of the physics
+space = pm.Space()
+space.gravity = (0.0, -700.0)
+pigs = []
+birds = []
+balls = []
+polys = []
+beams = []
+columns = []
+poly_points = []
+ball_number = 0
+polys_dict = {}
+mouse_distance = 0
+rope_lenght = 90
+angle = 0
+x_pymunk = 0
+y_pymunk = 0
+x_pygame_mouse = 0
+y_pygame_mouse = 0
+count = 0
+mouse_pressed = False
+t1 = 0
+
 
 class Bird():
     def __init__(self, distance, angle, x, y):
@@ -48,56 +91,58 @@ class Pig():
         shape.friction = 1
         shape.collision_type = 1
         space.add(body, shape)
-        #pigs.append(shape)
         self.body = body
         self.shape = shape
 
-pygame.init()
-screen = pygame.display.set_mode((1200, 650))
-redbird = pygame.image.load("../resources/images/red-bird3.png").convert_alpha()
-background2 = pygame.image.load(
-    "../resources/images/background3.png").convert_alpha()
-wood = pygame.image.load("../resources/images/wood.png").convert_alpha()
-wood2 = pygame.image.load("../resources/images/wood2.png").convert_alpha()
-sling_image = pygame.image.load(
-    "../resources/images/sling-3.png").convert_alpha()
-full_sprite = pygame.image.load(
-    "../resources/images/full-sprite.png").convert_alpha()
-rect = pygame.Rect(181, 1050, 50, 50)
-cropped = full_sprite.subsurface(rect).copy()
-pig_image = pygame.transform.scale(cropped, (30, 30))
-rect = pygame.Rect(251, 357, 86, 22)
-beam_image = wood.subsurface(rect).copy()
-rect = pygame.Rect(16, 252, 22, 84)
-column_image = wood2.subsurface(rect).copy()
-clock = pygame.time.Clock()
-running = True
-# the base of the physics
-space = pm.Space()
-space.gravity = (0.0, -700.0)
-pigs = []
-birds = []
-pig1 = Pig(980, 100)
-pig2 = Pig(985, 185)
-pigs.append(pig1)
-pigs.append(pig2)
-balls = []
-polys = []
-beams = []
-columns = []
-poly_points = []
-ball_number = 0
-polys_dict = {}
-mouse_distance = 0
-rope_lenght = 90
-angle = 0
-x_pymunk = 0
-y_pymunk = 0
-x_pygame_mouse = 0
-y_pygame_mouse = 0
-count = 0
-mouse_pressed = False
-t1 = 0
+
+class Polygon():
+    def __init__(self, pos, length, height, mass=5.0):
+        """Create the body and shape of a polygon"""
+        moment = 1000
+        body = pm.Body(mass, moment)
+        body.position = Vec2d(pos)
+        shape = pm.Poly.create_box(body, (length, height))
+        shape.color = THECOLORS['blue']
+        shape.friction = 0.5
+        shape.collision_type = 2
+        space.add(body, shape)
+        self.body = body
+        self.shape = shape
+
+    def draw_poly(self, element):
+        poly = self.shape
+        """Draw beams and columns"""
+        ps = poly.get_vertices()
+        ps.append(ps[0])
+        ps = map(flipyv, ps)
+        ps = list(ps)
+        color = THECOLORS["red"]
+        pygame.draw.lines(screen, color, False, ps)
+        if element == 'beams':
+            p = poly.body.position
+            p = Vec2d(p.x, flipy(p.y))
+            angle_degrees = math.degrees(poly.body.angle) + 180
+            rotated_logo_img = pygame.transform.rotate(beam_image, angle_degrees)
+
+            offset = Vec2d(rotated_logo_img.get_size()) / 2.
+            p = p - offset
+            np = p
+            # dy = math.sin(math.radians(angle_pure))*35
+            # dx = math.cos(math.radians(angle_pure))*35
+            screen.blit(rotated_logo_img, (np.x, np.y))
+        if element == 'columns':
+
+            p = poly.body.position
+            p = Vec2d(p.x, flipy(p.y))
+            angle_degrees = math.degrees(poly.body.angle) + 180
+            rotated_logo_img = pygame.transform.rotate(column_image, angle_degrees)
+
+            offset = Vec2d(rotated_logo_img.get_size()) / 2.
+            p = p - offset
+            np = p
+            # dx = math.sin(math.radians(-angle_pure))*34
+            # dy = math.cos(math.radians(-angle_pure))*34
+            screen.blit(rotated_logo_img, (np.x, np.y))
 
 # walls
 static_body = pm.Body()
@@ -146,54 +191,6 @@ def to_pygame2(x, y):
     return int(x), int(-y+600)
 
 
-def create_poly(pos, length, height, mass=5.0):
-    """Create the body and shape of a polygon"""
-    moment = 1000
-    body = pm.Body(mass, moment)
-    body.position = Vec2d(pos)
-    shape = pm.Poly.create_box(body, (length, height))
-    shape.color = THECOLORS['blue']
-    shape.friction = 0.5
-    shape.collision_type = 2
-    space.add(body, shape)
-    return shape
-
-
-def draw_poly(poly, element):
-    """Draw beams and columns"""
-    ps = poly.get_vertices()
-    ps.append(ps[0])
-    ps = map(flipyv, ps)
-    ps = list(ps)
-    color = THECOLORS["red"]
-    pygame.draw.lines(screen, color, False, ps)
-    if element == 'beams':
-        p = poly.body.position
-        p = Vec2d(p.x, flipy(p.y))
-        angle_degrees = math.degrees(poly.body.angle) + 180
-        rotated_logo_img = pygame.transform.rotate(beam_image, angle_degrees)
-
-        offset = Vec2d(rotated_logo_img.get_size()) / 2.
-        p = p - offset
-        np = p
-        # dy = math.sin(math.radians(angle_pure))*35
-        # dx = math.cos(math.radians(angle_pure))*35
-        screen.blit(rotated_logo_img, (np.x, np.y))
-    if element == 'columns':
-
-        p = poly.body.position
-        p = Vec2d(p.x, flipy(p.y))
-        angle_degrees = math.degrees(poly.body.angle) + 180
-        rotated_logo_img = pygame.transform.rotate(column_image, angle_degrees)
-
-        offset = Vec2d(rotated_logo_img.get_size()) / 2.
-        p = p - offset
-        np = p
-        # dx = math.sin(math.radians(-angle_pure))*34
-        # dy = math.cos(math.radians(-angle_pure))*34
-        screen.blit(rotated_logo_img, (np.x, np.y))
-
-
 def distance(xo, yo, x, y):
     """
     distance between players
@@ -211,19 +208,23 @@ def load_music():
     pygame.mixer.music.play(-1)
 
 
-def place_polys():
+def level_1():
+    pig1 = Pig(980, 100)
+    pig2 = Pig(985, 185)
+    pigs.append(pig1)
+    pigs.append(pig2)
     p = (950, 80)
-    columns.append(create_poly(p, 20, 85))
+    columns.append(Polygon(p, 20, 85))
     p = (1010, 80)
-    columns.append(create_poly(p, 20, 85))
+    columns.append(Polygon(p, 20, 85))
     p = (980, 150)
-    beams.append(create_poly(p, 85, 20))
+    beams.append(Polygon(p, 85, 20))
     p = (950, 200)
-    columns.append(create_poly(p, 20, 85))
+    columns.append(Polygon(p, 20, 85))
     p = (1010, 200)
-    columns.append(create_poly(p, 20, 85))
+    columns.append(Polygon(p, 20, 85))
     p = (980, 240)
-    beams.append(create_poly(p, 85, 20))
+    beams.append(Polygon(p, 85, 20))
 
 
 def post_solve_bird_pig(space, arbiter, surface=screen):
@@ -246,26 +247,37 @@ def post_solve_bird_pig(space, arbiter, surface=screen):
 
 
 def post_solve_bird_wood(space, arbiter):
+    poly_to_remove = []
     if arbiter.total_impulse.length > 1100:
         a, b = arbiter.shapes
-        if b in columns:
-            columns.remove(b)
-        if b in beams:
-            beams.remove(b)
+        for column in columns:
+            if b == column.shape:
+                poly_to_remove.append(column)
+        for beam in beams:
+            if b == beam.shape:
+                poly_to_remove.append(beam)
+        for poly in poly_to_remove:
+            if poly in columns:
+                columns.remove(poly)
+            if poly in beams:
+                beams.remove(poly)
+       # if b in columns:
+            #columns.remove(b)
+        #if b in beams:
+            #beams.remove(b)
         space.remove(b, b.body)
 
 
 def post_solve_pig_wood(space, arbiter):
     #print arbiter.total_impulse.length
     pigs_to_remove = []
-    if arbiter.total_impulse.length > 800:
+    if arbiter.total_impulse.length > 750:
         pig_shape, wood_shape = arbiter.shapes
         for pig in pigs:
             if pig_shape == pig.shape:
-                pig.life -= 7
+                pig.life -= 10
                 if pig.life <= 0:
                     pigs_to_remove.append(pig)
-        #space.remove(b, b.body)
     for pig in pigs_to_remove:
         space.remove(pig.shape, pig.shape.body)
         pigs.remove(pig)
@@ -323,7 +335,7 @@ space.add_collision_handler(0, 2, post_solve=post_solve_bird_wood)
 # pig and wood
 space.add_collision_handler(1, 2, post_solve=post_solve_pig_wood)
 load_music()
-place_polys()
+level_1()
 
 while running:
     # Drawing background
@@ -354,8 +366,8 @@ while running:
             else:
                 bird = Bird(-mouse_distance, angle, xo, yo)
                 birds.append(bird)
-    print "pig1.life="+str(pig1.life)
-    print "pig2.life="+str(pig2.life)
+    #print "pig1.life="+str(pig1.life)
+    #print "pig2.life="+str(pig2.life)
     if mouse_pressed:
         sling_action()
     else:
@@ -394,7 +406,10 @@ while running:
         p2 = to_pygame(pv2)
         pygame.draw.lines(screen, THECOLORS["lightgray"], False, [p1, p2])
     #for pig in pigs:
+    i = 0
     for pig in pigs:
+        i += 1
+        #print (i,pig.life)
         pig = pig.shape
         if pig.body.position.y < 0:
             pigs_to_remove.append(pig)
@@ -405,10 +420,14 @@ while running:
         y -= 20
         screen.blit(pig_image, (x+7, y+4))
         pygame.draw.circle(screen, THECOLORS["blue"], p, int(pig.radius), 2)
+    #for column in columns:
+        #draw_poly(column, 'columns')
+    #for beam in beams:
+        #draw_poly(beam, 'beams')
     for column in columns:
-        draw_poly(column, 'columns')
+        column.draw_poly('columns')
     for beam in beams:
-        draw_poly(beam, 'beams')
+        beam.draw_poly('beams')
     # Update physics
     dt = 1.0/60.0
     for x in range(1):
