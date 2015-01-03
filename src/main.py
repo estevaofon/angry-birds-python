@@ -16,13 +16,14 @@ import time
 pygame.init()
 screen = pygame.display.set_mode((1200, 650))
 redbird = pygame.image.load("../resources/images/red-bird3.png").convert_alpha()
-#background = pygame.image.load("../resources/images/background.png").convert_alpha()
-#background1 = pygame.image.load("../resources/images/background1.jpg").convert_alpha()
-background2 = pygame.image.load("../resources/images/background3.png").convert_alpha()
+background2 = pygame.image.load(
+    "../resources/images/background3.png").convert_alpha()
 wood = pygame.image.load("../resources/images/wood.png").convert_alpha()
 wood2 = pygame.image.load("../resources/images/wood2.png").convert_alpha()
-sling_image = pygame.image.load("../resources/images/sling-3.png").convert_alpha()
-full_sprite = pygame.image.load("../resources/images/full-sprite.png").convert_alpha()
+sling_image = pygame.image.load(
+    "../resources/images/sling-3.png").convert_alpha()
+full_sprite = pygame.image.load(
+    "../resources/images/full-sprite.png").convert_alpha()
 rect = pygame.Rect(181, 1050, 50, 50)
 cropped = full_sprite.subsurface(rect).copy()
 pig_image = pygame.transform.scale(cropped, (30, 30))
@@ -35,7 +36,6 @@ running = True
 # Physics stuff
 space = pm.Space()
 space.gravity = (0.0, -700.0)
-#pygame.mouse.set_visible(0)
 
 balls = []
 pigs = []
@@ -104,22 +104,20 @@ def to_pygame2(x, y):
 
 
 def create_poly(pos, length, height, mass=5.0):
-    #moment = pm.moment_for_poly(mass, points, Vec2d(0, 0))
+    """Create the body and shape of a polygon"""
     moment = 1000
     body = pm.Body(mass, moment)
     body.position = Vec2d(pos)
-    #shape = pm.Poly(body, points, Vec2d(0, 0))
-    #shape = pm.Poly(body, points, Vec2d(0, 0))
     shape = pm.Poly.create_box(body, (length, height))
     shape.color = THECOLORS['blue']
     shape.friction = 0.5
     shape.collision_type = 2
-    #shape.collision_type = COLLTYPE_DEFAULT
     space.add(body, shape)
     return shape
 
 
 def draw_poly(poly, element):
+    """Draw beams and columns"""
     ps = poly.get_vertices()
     ps.append(ps[0])
     ps = map(flipyv, ps)
@@ -135,8 +133,8 @@ def draw_poly(poly, element):
         offset = Vec2d(rotated_logo_img.get_size()) / 2.
         p = p - offset
         np = p
-        #dy = math.sin(math.radians(angle_pure))*35
-        #dx = math.cos(math.radians(angle_pure))*35
+        # dy = math.sin(math.radians(angle_pure))*35
+        # dx = math.cos(math.radians(angle_pure))*35
         screen.blit(rotated_logo_img, (np.x, np.y))
     if element == 'columns':
 
@@ -148,9 +146,9 @@ def draw_poly(poly, element):
         offset = Vec2d(rotated_logo_img.get_size()) / 2.
         p = p - offset
         np = p
-        #dx = math.sin(math.radians(-angle_pure))*34
-        #dy = math.cos(math.radians(-angle_pure))*34
-        screen.blit(rotated_logo_img, (np.x,np.y))
+        # dx = math.sin(math.radians(-angle_pure))*34
+        # dy = math.cos(math.radians(-angle_pure))*34
+        screen.blit(rotated_logo_img, (np.x, np.y))
 
 
 def distance(xo, yo, x, y):
@@ -183,10 +181,9 @@ def place_polys():
     columns.append(create_poly(p, 20, 85))
     p = (980, 240)
     beams.append(create_poly(p, 85, 20))
-    #polys_dict['columns'] = columns
 
 
-def create_ball(distance, angle, x, y):
+def create_bird(distance, angle, x, y):
     # ticks_to_next_ball = 500
     mass = 5
     radius = 12
@@ -221,7 +218,7 @@ def create_pigs(x, y):
 
 
 def post_solve_bird_pig(space, arbiter, surface=screen):
-    a,b = arbiter.shapes
+    a, b = arbiter.shapes
     bird_body = a.body
     pig_body = b.body
     p = to_pygame(bird_body.position)
@@ -233,9 +230,10 @@ def post_solve_bird_pig(space, arbiter, surface=screen):
         pigs.remove(b)
     space.remove(b, b.body)
 
+
 def post_solve_bird_wood(space, arbiter):
     if arbiter.total_impulse.length > 1200:
-        a,b = arbiter.shapes
+        a, b = arbiter.shapes
         if b in columns:
             columns.remove(b)
         if b in beams:
@@ -255,8 +253,6 @@ def sling_action():
     x_pymunk, y_pymunk = from_pygame(Vec2d(pygame.mouse.get_pos()), screen)
     x_pygame_mouse, y_pygame_mouse = to_pygame2(x_pymunk, y_pymunk)
     y_pygame_mouse = y_pygame_mouse + 52
-    #pygame.draw.line(screen, (0, 0, 255), (sling_x, sling_y),
-    #(x_pygame_mouse, y_pygame_mouse), 3)
     # Fixing bird to the sling rope
     v = vector((sling_x, sling_y), (x_pygame_mouse, y_pygame_mouse))
     uv = unit_vector(v)
@@ -278,7 +274,7 @@ def sling_action():
         screen.blit(redbird, pul)
         pygame.draw.line(screen, (0, 0, 0), (sling_x, sling_y), pu2, 5)
     else:
-        mouse_distance+=10
+        mouse_distance += 10
         pu3 = (uv1*mouse_distance+sling_x, uv2*mouse_distance+sling_y)
         pygame.draw.line(screen, (0, 0, 0), (sling2_x, sling2_y), pu3, 5)
         screen.blit(redbird, (x_redbird, y_redbird))
@@ -300,7 +296,6 @@ create_pigs(985, 180)
 
 while running:
     # Drawing background
-    #screen.fill(THECOLORS["white"])
     screen.fill((130, 200, 100))
     screen.blit(background2, (0, -50))
     sling_x, sling_y = 135, 450
@@ -320,18 +315,14 @@ while running:
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
             mouse_pressed = False
             t1 = time.time()
-            if pygame.key.get_mods() & KMOD_SHIFT:
-                p = flipyv(Vec2d(event.pos))
-                polys.append(create_horizontal_box(pos=p))
+            xo = 154
+            yo = 156
+            if mouse_distance > rope_lenght:
+                mouse_distance = rope_lenght
+            if x_pygame_mouse < sling_x+5:
+                create_bird(mouse_distance, angle, xo, yo)
             else:
-                xo = 154
-                yo = 156
-                if mouse_distance > rope_lenght:
-                    mouse_distance = rope_lenght
-                if x_pygame_mouse < sling_x+5:
-                    create_ball(mouse_distance, angle, xo, yo)
-                else:
-                    create_ball(-mouse_distance, angle, xo, yo)
+                create_bird(-mouse_distance, angle, xo, yo)
 
     if mouse_pressed:
         sling_action()
@@ -339,11 +330,13 @@ while running:
         if time.time() - t1 > 1:
             screen.blit(redbird, (130, 426))
         else:
-            pygame.draw.line(screen, (0, 0, 0), (sling_x, sling_y-8), (sling2_x,sling2_y-7), 5)
+            pygame.draw.line(screen, (0, 0, 0), (sling_x, sling_y-8),
+                             (sling2_x, sling2_y-7), 5)
     # Draw stuff
     balls_to_remove = []
     for ball in balls:
-        if ball.body.position.y < 0: balls_to_remove.append(ball)
+        if ball.body.position.y < 0:
+            balls_to_remove.append(ball)
 
         p = to_pygame(ball.body.position)
         x, y = p
@@ -362,11 +355,10 @@ while running:
         p1 = to_pygame(pv1)
         p2 = to_pygame(pv2)
         pygame.draw.lines(screen, THECOLORS["lightgray"], False, [p1, p2])
-    #for poly in polys:
-        #draw_poly(poly)
     pigs_to_remove = []
     for pig in pigs:
-        if pig.body.position.y < 0: pigs_to_remove.append(pig)
+        if pig.body.position.y < 0:
+            pigs_to_remove.append(pig)
 
         p = to_pygame(pig.body.position)
         x, y = p
