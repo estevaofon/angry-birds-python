@@ -13,6 +13,23 @@ from pymunk.pygame_util import from_pygame
 import time
 
 
+class Pig():
+    def __init__(self, x, y):
+        self.life = 20
+        mass = 5
+        radius = 14
+        inertia = pm.moment_for_circle(mass, 0, radius, (0, 0))
+        body = pm.Body(mass, inertia)
+        body.position = x, y
+        shape = pm.Circle(body, radius, (0, 0))
+        shape.elasticity = 0.95
+        shape.friction = 1
+        shape.collision_type = 1
+        space.add(body, shape)
+        #pigs.append(shape)
+        self.body = body
+        self.shape = shape
+
 pygame.init()
 screen = pygame.display.set_mode((1200, 650))
 redbird = pygame.image.load("../resources/images/red-bird3.png").convert_alpha()
@@ -33,12 +50,18 @@ rect = pygame.Rect(16, 252, 22, 84)
 column_image = wood2.subsurface(rect).copy()
 clock = pygame.time.Clock()
 running = True
-# Physics stuff
+# the base of the physics
 space = pm.Space()
 space.gravity = (0.0, -700.0)
-
-balls = []
 pigs = []
+pigs_object = []
+pig1 = Pig(980, 100)
+pig2 = Pig(985, 180)
+pigs_object.append(pig1)
+pigs_object.append(pig2)
+pigs.append(pig1.shape)
+pigs.append(pig2.shape)
+balls = []
 polys = []
 beams = []
 columns = []
@@ -202,21 +225,6 @@ def create_bird(distance, angle, x, y):
     balls.append(shape)
 
 
-def create_pigs(x, y):
-    # ticks_to_next_ball = 500
-    mass = 5
-    radius = 14
-    inertia = pm.moment_for_circle(mass, 0, radius, (0, 0))
-    body = pm.Body(mass, inertia)
-    body.position = x, y
-    shape = pm.Circle(body, radius, (0, 0))
-    shape.elasticity = 0.95
-    shape.friction = 1
-    shape.collision_type = 1
-    space.add(body, shape)
-    pigs.append(shape)
-
-
 def post_solve_bird_pig(space, arbiter, surface=screen):
     a, b = arbiter.shapes
     bird_body = a.body
@@ -229,6 +237,9 @@ def post_solve_bird_pig(space, arbiter, surface=screen):
     if b in pigs:
         pigs.remove(b)
     space.remove(b, b.body)
+    for pig in pigs_object:
+        if pig_body == pig.body:
+            pig.life -= 10
 
 
 def post_solve_bird_wood(space, arbiter):
@@ -289,10 +300,8 @@ def sling_action():
 
 space.add_collision_handler(0, 1, post_solve=post_solve_bird_pig)
 space.add_collision_handler(0, 2, post_solve=post_solve_bird_wood)
-load_music()
+#load_music()
 place_polys()
-create_pigs(980, 100)
-create_pigs(985, 180)
 
 while running:
     # Drawing background
@@ -308,8 +317,6 @@ while running:
             running = False
         elif event.type == KEYDOWN and event.key == K_ESCAPE:
             running = False
-        elif event.type == KEYDOWN and event.key == K_p:
-            pygame.image.save(screen, "bouncing_balls.png")
         if pygame.mouse.get_pressed()[0]:
             mouse_pressed = True
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
@@ -323,7 +330,8 @@ while running:
                 create_bird(mouse_distance, angle, xo, yo)
             else:
                 create_bird(-mouse_distance, angle, xo, yo)
-
+    print "pig1.life="+str(pig1.life)
+    print "pig2.life="+str(pig2.life)
     if mouse_pressed:
         sling_action()
     else:
