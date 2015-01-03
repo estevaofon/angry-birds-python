@@ -78,7 +78,7 @@ space.gravity = (0.0, -700.0)
 pigs = []
 birds = []
 pig1 = Pig(980, 100)
-pig2 = Pig(985, 180)
+pig2 = Pig(985, 185)
 pigs.append(pig1)
 pigs.append(pig2)
 balls = []
@@ -235,23 +235,40 @@ def post_solve_bird_pig(space, arbiter, surface=screen):
     r = 30
     pygame.draw.circle(surface, THECOLORS["black"], p, r, 4)
     pygame.draw.circle(surface, THECOLORS["red"], p2, r, 4)
+    pigs_to_remove = []
     for pig in pigs:
         if pig_body == pig.body:
             pig.life -= 10
-    for pig in pigs:
-        if b == pig.shape:
-            pigs.remove(pig)
-    space.remove(b, b.body)
+            pigs_to_remove.append(pig)
+    for pig in pigs_to_remove:
+        space.remove(pig.shape, pig.shape.body)
+        pigs.remove(pig)
 
 
 def post_solve_bird_wood(space, arbiter):
-    if arbiter.total_impulse.length > 1200:
+    if arbiter.total_impulse.length > 1100:
         a, b = arbiter.shapes
         if b in columns:
             columns.remove(b)
         if b in beams:
             beams.remove(b)
         space.remove(b, b.body)
+
+
+def post_solve_pig_wood(space, arbiter):
+    #print arbiter.total_impulse.length
+    pigs_to_remove = []
+    if arbiter.total_impulse.length > 800:
+        pig_shape, wood_shape = arbiter.shapes
+        for pig in pigs:
+            if pig_shape == pig.shape:
+                pig.life -= 7
+                if pig.life <= 0:
+                    pigs_to_remove.append(pig)
+        #space.remove(b, b.body)
+    for pig in pigs_to_remove:
+        space.remove(pig.shape, pig.shape.body)
+        pigs.remove(pig)
 
 
 def sling_action():
@@ -299,9 +316,12 @@ def sling_action():
         dx = 0.00000000000001
     angle = math.atan((float(dy))/dx)
 
-
+# bird and pigs
 space.add_collision_handler(0, 1, post_solve=post_solve_bird_pig)
+# bird and wood
 space.add_collision_handler(0, 2, post_solve=post_solve_bird_wood)
+# pig and wood
+space.add_collision_handler(1, 2, post_solve=post_solve_pig_wood)
 load_music()
 place_polys()
 
@@ -345,10 +365,10 @@ while running:
             pygame.draw.line(screen, (0, 0, 0), (sling_x, sling_y-8),
                              (sling2_x, sling2_y-7), 5)
     # Draw stuff
-    birds_to_remove = []
     #for ball in balls:
+    birds_to_remove = []
+    pigs_to_remove = []
     for bird in birds:
-        #bird = bird.shape
         if bird.shape.body.position.y < 0:
             birds_to_remove.append(bird)
 
@@ -362,6 +382,10 @@ while running:
     for bird in birds_to_remove:
         space.remove(bird.shape, bird.shape.body)
         birds.remove(bird)
+    for pig in pigs_to_remove:
+        space.remove(pig.shape, pig.shape.body)
+        pigs.remove(pig)
+
     for line in static_lines:
         body = line.body
         pv1 = body.position + line.a.rotated(body.angle)
@@ -369,7 +393,6 @@ while running:
         p1 = to_pygame(pv1)
         p2 = to_pygame(pv2)
         pygame.draw.lines(screen, THECOLORS["lightgray"], False, [p1, p2])
-    pigs_to_remove = []
     #for pig in pigs:
     for pig in pigs:
         pig = pig.shape
