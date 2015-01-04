@@ -53,6 +53,7 @@ BLUE = (0, 0, 255)
 BLACK = (0, 0, 0)
 sling_x, sling_y = 135, 450
 sling2_x, sling2_y = 160, 450
+score = 0
 
 # walls
 static_body = pm.Body()
@@ -158,7 +159,7 @@ def sling_action():
 def level_1():
     """ Set up level 1"""
     pig1 = Pig(980, 100, space)
-    pig2 = Pig(985, 185, space)
+    pig2 = Pig(985, 182, space)
     pigs.append(pig1)
     pigs.append(pig2)
     p = (950, 80)
@@ -188,8 +189,10 @@ def post_solve_bird_pig(space, arbiter, surface=screen):
     pigs_to_remove = []
     for pig in pigs:
         if pig_body == pig.body:
-            pig.life -= 10
+            pig.life -= 20
             pigs_to_remove.append(pig)
+            global score
+            score += 10000
     for pig in pigs_to_remove:
         space.remove(pig.shape, pig.shape.body)
         pigs.remove(pig)
@@ -212,16 +215,20 @@ def post_solve_bird_wood(space, arbiter):
             if poly in beams:
                 beams.remove(poly)
         space.remove(b, b.body)
+        global score
+        score += 5000
 
 
 def post_solve_pig_wood(space, arbiter):
     """Collision between pig and wood"""
     pigs_to_remove = []
-    if arbiter.total_impulse.length > 750:
+    if arbiter.total_impulse.length > 700:
         pig_shape, wood_shape = arbiter.shapes
         for pig in pigs:
             if pig_shape == pig.shape:
-                pig.life -= 10
+                pig.life -= 20
+                global score
+                score += 10000
                 if pig.life <= 0:
                     pigs_to_remove.append(pig)
     for pig in pigs_to_remove:
@@ -235,7 +242,7 @@ space.add_collision_handler(0, 1, post_solve=post_solve_bird_pig)
 space.add_collision_handler(0, 2, post_solve=post_solve_bird_wood)
 # pig and wood
 space.add_collision_handler(1, 2, post_solve=post_solve_pig_wood)
-#load_music()
+load_music()
 level_1()
 
 while running:
@@ -260,7 +267,6 @@ while running:
             else:
                 bird = Bird(-mouse_distance, angle, xo, yo, space)
                 birds.append(bird)
-
     # Drawing background
     screen.fill((130, 200, 100))
     screen.blit(background2, (0, -50))
@@ -326,6 +332,14 @@ while running:
     # Drawing second part of the sling
     rect = pygame.Rect(0, 0, 60, 200)
     screen.blit(sling_image, (120, 420), rect)
+    bold_font = pygame.font.SysFont("monospace", 35, bold=True)
+    score_font = bold_font.render("SCORE", 1, (255, 255, 255))
+    number_font = bold_font.render(str(score), 1, (255, 255, 255))
+    screen.blit(score_font, (1060, 90))
+    if score == 0:
+        screen.blit(number_font, (1100, 130))
+    else:
+        screen.blit(number_font, (1060, 130))
     # Flip screen
     pygame.display.flip()
     clock.tick(50)
