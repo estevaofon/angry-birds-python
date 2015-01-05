@@ -24,6 +24,18 @@ full_sprite = pygame.image.load(
 rect = pygame.Rect(181, 1050, 50, 50)
 cropped = full_sprite.subsurface(rect).copy()
 pig_image = pygame.transform.scale(cropped, (30, 30))
+buttons = pygame.image.load("../resources/images/selected-buttons.png").convert_alpha()
+# pause button
+rect = pygame.Rect(164, 10, 60, 60)
+pause_button = buttons.subsurface(rect).copy()
+#pause_button = pygame.transform.scale(cropped, (60, 60))
+# replay
+rect = pygame.Rect(24, 4, 100, 100)
+replay_button = buttons.subsurface(rect).copy()
+clock = pygame.time.Clock()
+# play
+rect = pygame.Rect(18, 212, 100, 100)
+play_button = buttons.subsurface(rect).copy()
 clock = pygame.time.Clock()
 running = True
 # the base of the physics
@@ -54,6 +66,7 @@ BLACK = (0, 0, 0)
 sling_x, sling_y = 135, 450
 sling2_x, sling2_y = 160, 450
 score = 0
+game_state = 0
 
 # walls
 static_body = pm.Body()
@@ -176,6 +189,34 @@ def level_1():
     beams.append(Polygon(p, 85, 20, space))
 
 
+def restart():
+    pigs_to_remove = []
+    birds_to_remove = []
+    columns_to_remove = []
+    beams_to_remove = []
+    for pig in pigs:
+        pigs_to_remove.append(pig)
+    for pig in pigs_to_remove:
+        space.remove(pig.shape, pig.shape.body)
+        pigs.remove(pig)
+    for bird in birds:
+        birds_to_remove.append(bird)
+    for bird in birds_to_remove:
+        space.remove(bird.shape, bird.shape.body)
+        birds.remove(bird)
+    for column in columns:
+        columns_to_remove.append(column)
+    for column in columns_to_remove:
+        space.remove(column.shape, column.shape.body)
+        columns.remove(column)
+    for beam in beams:
+        beams_to_remove.append(beam)
+    for beam in beams_to_remove:
+        space.remove(beam.shape, beam.shape.body)
+        beams.remove(beam)
+    level_1()
+
+
 def post_solve_bird_pig(space, arbiter, surface=screen):
     """Collision between bird and pig"""
     a, b = arbiter.shapes
@@ -267,6 +308,13 @@ while running:
             else:
                 bird = Bird(-mouse_distance, angle, xo, yo, space)
                 birds.append(bird)
+            if x_pygame_mouse <60 and y_pygame_mouse <155 and y_pygame_mouse>90:
+                 game_state = 1
+            if game_state == 1 and x_pygame_mouse>500 and y_pygame_mouse > 200 and y_pygame_mouse <300:
+                game_state = 0
+            if game_state == 1 and x_pygame_mouse>500 and y_pygame_mouse > 300:
+                restart()
+                game_state = 0
     # Drawing background
     screen.fill((130, 200, 100))
     screen.blit(background2, (0, -50))
@@ -332,14 +380,20 @@ while running:
     # Drawing second part of the sling
     rect = pygame.Rect(0, 0, 60, 200)
     screen.blit(sling_image, (120, 420), rect)
-    bold_font = pygame.font.SysFont("monospace", 35, bold=True)
+    bold_font = pygame.font.SysFont("arial", 30, bold=True)
     score_font = bold_font.render("SCORE", 1, (255, 255, 255))
     number_font = bold_font.render(str(score), 1, (255, 255, 255))
+    arial = pygame.font.SysFont("arial", 35, bold=True)
+    pause_font = arial.render("II", 1, (255, 255, 255))
     screen.blit(score_font, (1060, 90))
     if score == 0:
         screen.blit(number_font, (1100, 130))
     else:
         screen.blit(number_font, (1060, 130))
+    screen.blit(pause_button, (10, 90))
+    if game_state == 1:
+        screen.blit(play_button, (500, 200))
+        screen.blit(replay_button, (500, 300))
     # Flip screen
     pygame.display.flip()
     clock.tick(50)
