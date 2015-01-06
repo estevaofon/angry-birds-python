@@ -8,8 +8,8 @@ sys.path.insert(0, os.path.join(current_path, "../pymunk-4.0.0"))
 import pymunk as pm
 from pymunk import Vec2d
 from pymunk.pygame_util import from_pygame
-from characters import Bird, Pig
-from polygon import Polygon
+from characters import Bird
+from level import Level
 
 
 pygame.init()
@@ -25,15 +25,21 @@ rect = pygame.Rect(181, 1050, 50, 50)
 cropped = full_sprite.subsurface(rect).copy()
 pig_image = pygame.transform.scale(cropped, (30, 30))
 buttons = pygame.image.load("../resources/images/selected-buttons.png").convert_alpha()
-# pause button
+pig_happy = pygame.image.load("../resources/images/pig_failed.png").convert_alpha()
+stars = pygame.image.load("../resources/images/stars-edited.png").convert_alpha()
+rect = pygame.Rect(0, 0, 200, 200)
+star1 = stars.subsurface(rect).copy()
+rect = pygame.Rect(204, 0, 200, 200)
+star2 = stars.subsurface(rect).copy()
+rect = pygame.Rect(426, 0, 200, 200)
+star3 = stars.subsurface(rect).copy()
 rect = pygame.Rect(164, 10, 60, 60)
 pause_button = buttons.subsurface(rect).copy()
-#pause_button = pygame.transform.scale(cropped, (60, 60))
-# replay
 rect = pygame.Rect(24, 4, 100, 100)
 replay_button = buttons.subsurface(rect).copy()
+rect = pygame.Rect(142, 365, 130, 100)
+next_button = buttons.subsurface(rect).copy()
 clock = pygame.time.Clock()
-# play
 rect = pygame.Rect(18, 212, 100, 100)
 play_button = buttons.subsurface(rect).copy()
 clock = pygame.time.Clock()
@@ -67,6 +73,7 @@ sling_x, sling_y = 135, 450
 sling2_x, sling2_y = 160, 450
 score = 0
 game_state = 0
+number_level = 0
 
 # walls
 static_body = pm.Body()
@@ -169,26 +176,6 @@ def sling_action():
     angle = math.atan((float(dy))/dx)
 
 
-def level_1():
-    """ Set up level 1"""
-    pig1 = Pig(980, 100, space)
-    pig2 = Pig(985, 182, space)
-    pigs.append(pig1)
-    pigs.append(pig2)
-    p = (950, 80)
-    columns.append(Polygon(p, 20, 85, space))
-    p = (1010, 80)
-    columns.append(Polygon(p, 20, 85, space))
-    p = (980, 150)
-    beams.append(Polygon(p, 85, 20, space))
-    p = (950, 200)
-    columns.append(Polygon(p, 20, 85, space))
-    p = (1010, 200)
-    columns.append(Polygon(p, 20, 85, space))
-    p = (980, 240)
-    beams.append(Polygon(p, 85, 20, space))
-
-
 def restart():
     pigs_to_remove = []
     birds_to_remove = []
@@ -214,7 +201,6 @@ def restart():
     for beam in beams_to_remove:
         space.remove(beam.shape, beam.shape.body)
         beams.remove(beam)
-    level_1()
 
 
 def post_solve_bird_pig(space, arbiter, surface=screen):
@@ -284,7 +270,9 @@ space.add_collision_handler(0, 2, post_solve=post_solve_bird_wood)
 # pig and wood
 space.add_collision_handler(1, 2, post_solve=post_solve_pig_wood)
 load_music()
-level_1()
+#level_1()
+level = Level(pigs, columns, beams, space)
+level.load_level(number_level)
 
 while running:
     # Input handling
@@ -296,6 +284,8 @@ while running:
         if pygame.mouse.get_pressed()[0]:
             mouse_pressed = True
         elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            if game_state == 0:
+                level.number_of_birds -= 1
             mouse_pressed = False
             t1 = time.time()
             xo = 154
@@ -310,11 +300,28 @@ while running:
                 birds.append(bird)
             if x_pygame_mouse <60 and y_pygame_mouse <155 and y_pygame_mouse>90:
                  game_state = 1
-            if game_state == 1 and x_pygame_mouse>500 and y_pygame_mouse > 200 and y_pygame_mouse <300:
-                game_state = 0
-            if game_state == 1 and x_pygame_mouse>500 and y_pygame_mouse > 300:
-                restart()
-                game_state = 0
+            if game_state == 1:
+                if x_pygame_mouse>500 and y_pygame_mouse > 200 and y_pygame_mouse <300:
+                    game_state = 0
+                if x_pygame_mouse>500 and y_pygame_mouse > 300:
+                    restart()
+                    level.load_level(number_level)
+                    game_state = 0
+            if game_state == 3:
+                if x_pygame_mouse>500 and x_pygame_mouse<620 and y_pygame_mouse > 450:
+                    restart()
+                    level.load_level(number_level)
+                    game_state = 0
+            if game_state == 4:
+                if  x_pygame_mouse>610 and y_pygame_mouse > 450:
+                    restart()
+                    number_level += 1
+                    game_state = 0
+                    level.load_level(number_level)
+                if  x_pygame_mouse<610 and x_pygame_mouse > 500 and y_pygame_mouse > 450:
+                    restart()
+                    level.load_level(number_level)
+                    game_state = 0
     # Drawing background
     screen.fill((130, 200, 100))
     screen.blit(background2, (0, -50))
@@ -354,7 +361,7 @@ while running:
         pv2 = body.position + line.b.rotated(body.angle)
         p1 = to_pygame(pv1)
         p2 = to_pygame(pv2)
-        pygame.draw.lines(screen, BLACK, False, [p1, p2])
+        pygame.draw.lines(screen, (150,150,150), False, [p1, p2])
     i = 0
     for pig in pigs:
         i += 1
@@ -381,8 +388,13 @@ while running:
     rect = pygame.Rect(0, 0, 60, 200)
     screen.blit(sling_image, (120, 420), rect)
     bold_font = pygame.font.SysFont("arial", 30, bold=True)
+    bold_font_bigger = pygame.font.SysFont("arial", 40, bold=True)
+    failed_font = pygame.font.SysFont("arial", 50, bold=True)
     score_font = bold_font.render("SCORE", 1, (255, 255, 255))
+    failed = failed_font.render("Level Failed", 1, (255, 255, 255))
+    level_cleared = failed_font.render("Level Cleared!", 1, (255, 255, 255))
     number_font = bold_font.render(str(score), 1, (255, 255, 255))
+    score_level_cleared = bold_font_bigger.render(str(score), 1, (255, 255, 255))
     arial = pygame.font.SysFont("arial", 35, bold=True)
     pause_font = arial.render("II", 1, (255, 255, 255))
     screen.blit(score_font, (1060, 90))
@@ -394,6 +406,24 @@ while running:
     if game_state == 1:
         screen.blit(play_button, (500, 200))
         screen.blit(replay_button, (500, 300))
+    if level.number_of_birds <= 0:
+        game_state = 3
+        rect = pygame.Rect(300, 0, 600, 800)
+        pygame.draw.rect(screen, BLACK, rect)
+        screen.blit(failed, (450, 90))
+        screen.blit(pig_happy, (380, 120))
+        screen.blit(replay_button, (520, 460))
+    if level.number_of_birds > 0 and len(pigs) == 0:
+        game_state = 4
+        rect = pygame.Rect(300, 0, 600, 800)
+        pygame.draw.rect(screen, BLACK, rect)
+        screen.blit(level_cleared, (450, 90))
+        screen.blit(star1, (310, 190))
+        screen.blit(star2, (500, 170))
+        screen.blit(star3, (700, 200))
+        screen.blit(score_level_cleared, (550, 400))
+        screen.blit(replay_button, (510, 480))
+        screen.blit(next_button, (620, 480))
     # Flip screen
     pygame.display.flip()
     clock.tick(50)
