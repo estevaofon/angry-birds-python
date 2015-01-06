@@ -10,6 +10,10 @@ class Level():
         self.space = space
         self.number = []
         self.number_of_birds = 4
+        #lower limit
+        self.one_star = 20000
+        self.two_star = 30000
+        self.three_star = 50000
 
     def build_0(self):
         """ Set up level 1"""
@@ -30,6 +34,9 @@ class Level():
         p = (980, 240)
         self.beams.append(Polygon(p, 85, 20, self.space))
         self.number_of_birds = 4
+        self.one_star = 30000
+        self.two_star = 40000
+        self.three_star = 60000
 
     def build_1(self):
         """level 2"""

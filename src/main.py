@@ -24,9 +24,12 @@ full_sprite = pygame.image.load(
 rect = pygame.Rect(181, 1050, 50, 50)
 cropped = full_sprite.subsurface(rect).copy()
 pig_image = pygame.transform.scale(cropped, (30, 30))
-buttons = pygame.image.load("../resources/images/selected-buttons.png").convert_alpha()
-pig_happy = pygame.image.load("../resources/images/pig_failed.png").convert_alpha()
-stars = pygame.image.load("../resources/images/stars-edited.png").convert_alpha()
+buttons = pygame.image.load(
+    "../resources/images/selected-buttons.png").convert_alpha()
+pig_happy = pygame.image.load(
+    "../resources/images/pig_failed.png").convert_alpha()
+stars = pygame.image.load(
+    "../resources/images/stars-edited.png").convert_alpha()
 rect = pygame.Rect(0, 0, 200, 200)
 star1 = stars.subsurface(rect).copy()
 rect = pygame.Rect(204, 0, 200, 200)
@@ -66,14 +69,19 @@ y_pygame_mouse = 0
 count = 0
 mouse_pressed = False
 t1 = 0
+tick_to_next_circle = 10
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
 sling_x, sling_y = 135, 450
 sling2_x, sling2_y = 160, 450
 score = 0
 game_state = 0
 number_level = 0
+bird_path = []
+counter = 0
+restart_counter = False
 
 # walls
 static_body = pm.Body()
@@ -269,8 +277,7 @@ space.add_collision_handler(0, 1, post_solve=post_solve_bird_pig)
 space.add_collision_handler(0, 2, post_solve=post_solve_bird_wood)
 # pig and wood
 space.add_collision_handler(1, 2, post_solve=post_solve_pig_wood)
-load_music()
-#level_1()
+#load_music()
 level = Level(pigs, columns, beams, space)
 level.load_level(number_level)
 
@@ -298,31 +305,35 @@ while running:
             else:
                 bird = Bird(-mouse_distance, angle, xo, yo, space)
                 birds.append(bird)
-            if x_pygame_mouse <60 and y_pygame_mouse <155 and y_pygame_mouse>90:
+            if x_pygame_mouse < 60 and y_pygame_mouse < 155 and y_pygame_mouse > 90:
                  game_state = 1
             if game_state == 1:
-                if x_pygame_mouse>500 and y_pygame_mouse > 200 and y_pygame_mouse <300:
+                if x_pygame_mouse > 500 and y_pygame_mouse > 200 and y_pygame_mouse < 300:
                     game_state = 0
-                if x_pygame_mouse>500 and y_pygame_mouse > 300:
+                if x_pygame_mouse> 500 and y_pygame_mouse > 300:
                     restart()
                     level.load_level(number_level)
                     game_state = 0
+                    bird_path = []
             if game_state == 3:
-                if x_pygame_mouse>500 and x_pygame_mouse<620 and y_pygame_mouse > 450:
+                if x_pygame_mouse > 500 and x_pygame_mouse < 620 and y_pygame_mouse > 450:
                     restart()
                     level.load_level(number_level)
                     game_state = 0
+                    bird_path = []
             if game_state == 4:
-                if  x_pygame_mouse>610 and y_pygame_mouse > 450:
+                if  x_pygame_mouse > 610 and y_pygame_mouse > 450:
                     restart()
                     number_level += 1
                     game_state = 0
                     level.load_level(number_level)
                     score = 0
-                if  x_pygame_mouse<610 and x_pygame_mouse > 500 and y_pygame_mouse > 450:
+                    bird_path = []
+                if  x_pygame_mouse < 610 and x_pygame_mouse > 500 and y_pygame_mouse > 450:
                     restart()
                     level.load_level(number_level)
                     game_state = 0
+                    bird_path = []
     # Drawing background
     screen.fill((130, 200, 100))
     screen.blit(background2, (0, -50))
@@ -338,10 +349,12 @@ while running:
                              (sling2_x, sling2_y-7), 5)
     birds_to_remove = []
     pigs_to_remove = []
+    for point in bird_path:
+        pygame.draw.circle(screen, WHITE, point, 5, 0)
+    counter += 1
     for bird in birds:
         if bird.shape.body.position.y < 0:
             birds_to_remove.append(bird)
-
         p = to_pygame(bird.shape.body.position)
         x, y = p
         x -= 22
@@ -349,6 +362,14 @@ while running:
         screen.blit(redbird, (x, y))
         pygame.draw.circle(screen, BLUE,
                            p, int(bird.shape.radius), 2)
+        #print tick_to_next_circle
+        if counter >=3 and time.time() - t1 < 5:
+            bird_path.append(p)
+            restart_counter = True
+    if restart_counter == True:
+        counter = 0
+        restart_counter = False
+
     for bird in birds_to_remove:
         space.remove(bird.shape, bird.shape.body)
         birds.remove(bird)
@@ -419,9 +440,15 @@ while running:
         rect = pygame.Rect(300, 0, 600, 800)
         pygame.draw.rect(screen, BLACK, rect)
         screen.blit(level_cleared, (450, 90))
-        screen.blit(star1, (310, 190))
-        screen.blit(star2, (500, 170))
-        screen.blit(star3, (700, 200))
+        if score >= level.one_star and score <= level.two_star:
+            screen.blit(star1, (310, 190))
+        if score >= level.two_star and score <= level.three_star:
+            screen.blit(star1, (310, 190))
+            screen.blit(star2, (500, 170))
+        if score >= level.three_star:
+            screen.blit(star1, (310, 190))
+            screen.blit(star2, (500, 170))
+            screen.blit(star3, (700, 200))
         screen.blit(score_level_cleared, (550, 400))
         screen.blit(replay_button, (510, 480))
         screen.blit(next_button, (620, 480))
