@@ -68,5 +68,8 @@ class Level():
         self.number_of_birds = 4
 
     def load_level(self, number):
-        build_name = "build_"+str(number)
-        getattr(self, build_name)()
+        try:
+            build_name = "build_"+str(number)
+            getattr(self, build_name)()
+        except AttributeError:
+            pass

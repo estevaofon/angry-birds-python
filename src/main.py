@@ -318,6 +318,7 @@ while running:
                     number_level += 1
                     game_state = 0
                     level.load_level(number_level)
+                    score = 0
                 if  x_pygame_mouse<610 and x_pygame_mouse > 500 and y_pygame_mouse > 450:
                     restart()
                     level.load_level(number_level)
