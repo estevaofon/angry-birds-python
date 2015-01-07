@@ -23,10 +23,6 @@ class Polygon():
         rect = pygame.Rect(16, 252, 22, 84)
         self.column_image = wood2.subsurface(rect).copy()
 
-    def flipy(self, y):
-        """Convert chipmunk physics to pygame coordinates"""
-        return -y+600
-
     def to_pygame(self, p):
         """Convert pymunk to pygame coordinates"""
         return int(p.x), int(-p.y+600)
@@ -42,7 +38,7 @@ class Polygon():
         pygame.draw.lines(screen, color, False, ps)
         if element == 'beams':
             p = poly.body.position
-            p = Vec2d(p.x, self.flipy(p.y))
+            p = Vec2d(self.to_pygame(p))
             angle_degrees = math.degrees(poly.body.angle) + 180
             rotated_logo_img = pygame.transform.rotate(self.beam_image,
                                                        angle_degrees)
@@ -52,7 +48,7 @@ class Polygon():
             screen.blit(rotated_logo_img, (np.x, np.y))
         if element == 'columns':
             p = poly.body.position
-            p = Vec2d(p.x, self.flipy(p.y))
+            p = Vec2d(self.to_pygame(p))
             angle_degrees = math.degrees(poly.body.angle) + 180
             rotated_logo_img = pygame.transform.rotate(self.column_image,
                                                        angle_degrees)
