@@ -9,12 +9,13 @@ class Level():
         self.beams = beams
         self.space = space
         self.number = []
-        self.number_of_birds = 5
+        self.number_of_birds = 4
         #lower limit
         self.one_star = 30000
         self.two_star = 40000
         self.three_star = 60000
         self.no_more_level = False
+        self.bool_space = False
 
     def build_0(self):
         """ Set up level 1"""
@@ -34,15 +35,17 @@ class Level():
         self.columns.append(Polygon(p, 20, 85, self.space))
         p = (980, 240)
         self.beams.append(Polygon(p, 85, 20, self.space))
-        self.number_of_birds = 5
+        self.number_of_birds = 4
+        if self.bool_space:
+            self.number_of_birds = 8
         self.one_star = 30000
         self.two_star = 40000
         self.three_star = 60000
 
     def build_1(self):
         """level 2"""
-        pig1 = Pig(1000, 100, self.space)
-        self.pigs.append(pig1)
+        pig = Pig(1000, 100, self.space)
+        self.pigs.append(pig)
         p = (900, 80)
         self.columns.append(Polygon(p, 20, 85, self.space))
         p = (850, 80)
@@ -54,6 +57,8 @@ class Level():
         p = (1105, 210)
         self.beams.append(Polygon(p, 85, 20, self.space))
         self.number_of_birds = 4
+        if self.bool_space:
+            self.number_of_birds = 8
 
     def build_2(self):
         """level 3"""
@@ -72,6 +77,8 @@ class Level():
         p = (1000, 210)
         self.beams.append(Polygon(p, 85, 20, self.space))
         self.number_of_birds = 4
+        if self.bool_space:
+            self.number_of_birds = 8
 
     def build_3(self):
         """level 3"""
@@ -127,6 +134,9 @@ class Level():
         p = (950, 400)
         self.beams.append(Polygon(p, 85, 20, self.space))
         self.number_of_birds = 4
+        if self.bool_space:
+            self.number_of_birds = 8
+
     def load_level(self, number):
         try:
             build_name = "build_"+str(number)
