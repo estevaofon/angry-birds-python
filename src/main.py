@@ -62,10 +62,8 @@ polys_dict = {}
 mouse_distance = 0
 rope_lenght = 90
 angle = 0
-x_pymunk = 0
-y_pymunk = 0
-x_pygame_mouse = 0
-y_pygame_mouse = 0
+x_mouse = 0
+y_mouse = 0
 count = 0
 mouse_pressed = False
 t1 = 0
@@ -92,11 +90,6 @@ for line in static_lines:
     line.friction = 1
     line.collision_type = 3
 space.add(static_lines)
-
-
-def flipy(y):
-    """Convert chipmunk physics to pygame coordinates"""
-    return -y+600
 
 
 def to_pygame(p):
@@ -143,24 +136,18 @@ def sling_action():
     global mouse_distance
     global rope_lenght
     global angle
-    global x_pymunk
-    global y_pymunk
-    global x_pygame_mouse
-    global y_pygame_mouse
-    # Getting mouse position
-    x_pymunk, y_pymunk = from_pygame(Vec2d(pygame.mouse.get_pos()), screen)
-    x_pygame_mouse, y_pygame_mouse = (x_pymunk, flipy(y_pymunk))
-    y_pygame_mouse = y_pygame_mouse + 52
+    global x_mouse
+    global y_mouse
     # Fixing bird to the sling rope
-    v = vector((sling_x, sling_y), (x_pygame_mouse, y_pygame_mouse))
+    v = vector((sling_x, sling_y), (x_mouse, y_mouse))
     uv = unit_vector(v)
     uv1 = uv[0]
     uv2 = uv[1]
-    mouse_distance = distance(sling_x, sling_y, x_pygame_mouse, y_pygame_mouse)
+    mouse_distance = distance(sling_x, sling_y, x_mouse, y_mouse)
     pu = (uv1*rope_lenght+sling_x, uv2*rope_lenght+sling_y)
     bigger_rope = 102
-    x_redbird = x_pygame_mouse - 20
-    y_redbird = y_pygame_mouse - 20
+    x_redbird = x_mouse - 20
+    y_redbird = y_mouse - 20
     if mouse_distance > rope_lenght:
         pux, puy = pu
         pux -= 20
@@ -178,8 +165,8 @@ def sling_action():
         screen.blit(redbird, (x_redbird, y_redbird))
         pygame.draw.line(screen, (0, 0, 0), (sling_x, sling_y), pu3, 5)
     # Angle of impulse
-    dy = y_pygame_mouse - sling_y
-    dx = x_pygame_mouse - sling_x
+    dy = y_mouse - sling_y
+    dx = x_mouse - sling_x
     if dx == 0:
         dx = 0.00000000000001
     angle = math.atan((float(dy))/dx)
@@ -284,14 +271,16 @@ level.load_level(number_level)
 
 while running:
     # Input handling
+    x_mouse , y_mouse = pygame.mouse.get_pos()
+    # Getting mouse position
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             running = False
-        if pygame.mouse.get_pressed()[0]:
+        if pygame.mouse.get_pressed()[0] and x_mouse > 100 and x_mouse < 250 and y_mouse > 370 and y_mouse < 550:
             mouse_pressed = True
-        elif event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+        if event.type == pygame.MOUSEBUTTONUP and event.button == 1 and mouse_pressed:
             if game_state == 0:
                 level.number_of_birds -= 1
             mouse_pressed = False
@@ -300,30 +289,32 @@ while running:
             yo = 156
             if mouse_distance > rope_lenght:
                 mouse_distance = rope_lenght
-            if x_pygame_mouse < sling_x+5:
+            if x_mouse < sling_x+5:
                 bird = Bird(mouse_distance, angle, xo, yo, space)
                 birds.append(bird)
             else:
                 bird = Bird(-mouse_distance, angle, xo, yo, space)
                 birds.append(bird)
-            if x_pygame_mouse < 60 and y_pygame_mouse < 155 and y_pygame_mouse > 90:
+        if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+            if x_mouse < 60 and y_mouse < 155 and y_mouse > 90:
                  game_state = 1
             if game_state == 1:
-                if x_pygame_mouse > 500 and y_pygame_mouse > 200 and y_pygame_mouse < 300:
+                if x_mouse > 500 and y_mouse > 200 and y_mouse < 300:
                     game_state = 0
-                if x_pygame_mouse> 500 and y_pygame_mouse > 300:
+                if x_mouse> 500 and y_mouse > 300:
                     restart()
                     level.load_level(number_level)
                     game_state = 0
                     bird_path = []
             if game_state == 3:
-                if x_pygame_mouse > 500 and x_pygame_mouse < 620 and y_pygame_mouse > 450:
+                if x_mouse > 500 and x_mouse < 620 and y_mouse > 450:
                     restart()
                     level.load_level(number_level)
                     game_state = 0
                     bird_path = []
+                    score = 0
             if game_state == 4:
-                if  x_pygame_mouse > 610 and y_pygame_mouse > 450:
+                if  x_mouse > 610 and y_mouse > 450:
                     restart()
                     number_level += 1
                     game_state = 0
@@ -334,11 +325,12 @@ while running:
                     if level.no_more_level:
                         number_level = 0
                         level.no_more_level = False
-                if  x_pygame_mouse < 610 and x_pygame_mouse > 500 and y_pygame_mouse > 450:
+                if  x_mouse < 610 and x_mouse > 500 and y_mouse > 450:
                     restart()
                     level.load_level(number_level)
                     game_state = 0
                     bird_path = []
+                    score = 0
     # Drawing background
     screen.fill((130, 200, 100))
     screen.blit(background2, (0, -50))
