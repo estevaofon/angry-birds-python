@@ -82,6 +82,7 @@ number_level = 0
 bird_path = []
 counter = 0
 restart_counter = False
+bonus_score_once = True
 
 # walls
 static_body = pm.Body()
@@ -277,7 +278,7 @@ space.add_collision_handler(0, 1, post_solve=post_solve_bird_pig)
 space.add_collision_handler(0, 2, post_solve=post_solve_bird_wood)
 # pig and wood
 space.add_collision_handler(1, 2, post_solve=post_solve_pig_wood)
-#load_music()
+load_music()
 level = Level(pigs, columns, beams, space)
 level.load_level(number_level)
 
@@ -329,6 +330,10 @@ while running:
                     level.load_level(number_level)
                     score = 0
                     bird_path = []
+                    bonus_score_once = True
+                    if level.no_more_level:
+                        number_level = 0
+                        level.no_more_level = False
                 if  x_pygame_mouse < 610 and x_pygame_mouse > 500 and y_pygame_mouse > 450:
                     restart()
                     level.load_level(number_level)
@@ -339,6 +344,8 @@ while running:
     screen.blit(background2, (0, -50))
     rect = pygame.Rect(50, 0, 70, 220)
     screen.blit(sling_image, (138, 420), rect)
+    for point in bird_path:
+        pygame.draw.circle(screen, WHITE, point, 5, 0)
     if mouse_pressed:
         sling_action()
     else:
@@ -349,8 +356,6 @@ while running:
                              (sling2_x, sling2_y-7), 5)
     birds_to_remove = []
     pigs_to_remove = []
-    for point in bird_path:
-        pygame.draw.circle(screen, WHITE, point, 5, 0)
     counter += 1
     for bird in birds:
         if bird.shape.body.position.y < 0:
@@ -436,6 +441,9 @@ while running:
         screen.blit(pig_happy, (380, 120))
         screen.blit(replay_button, (520, 460))
     if level.number_of_birds > 0 and len(pigs) == 0:
+        if bonus_score_once:
+            score += (level.number_of_birds-1) * 10000
+        bonus_score_once = False
         game_state = 4
         rect = pygame.Rect(300, 0, 600, 800)
         pygame.draw.rect(screen, BLACK, rect)
