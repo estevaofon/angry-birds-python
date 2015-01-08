@@ -10,8 +10,9 @@ Requisitos: Python 2 ou 3 + Pygame
 4. Execute o main.py
 
 ####Gravidade Zero
-Para ativar a "gravidade zero" aperte a tecla s
-Para voltar ao modo normal aperte a tecla n
+![Alt text](/resources/images/gravity-zero.png?raw=true "angry-birds")
+Para ativar a "gravidade zero" aperte a tecla s.
+Para voltar ao modo normal aperte a tecla n.
 
 ####Junte-se ao projeto
 O projeto é Open Source, contribua a vontade.

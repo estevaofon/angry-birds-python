@@ -400,6 +400,11 @@ while running:
     # Draw the trail left behind
     for point in bird_path:
         pygame.draw.circle(screen, WHITE, point, 5, 0)
+    # Draw the birds in the wait line
+    if level.number_of_birds > 0:
+        for i in range(level.number_of_birds-1):
+            x = 100 - (i*35)
+            screen.blit(redbird, (x, 508))
     # Draw sling behavior
     if mouse_pressed and level.number_of_birds > 0:
         sling_action()
@@ -409,11 +414,6 @@ while running:
         else:
             pygame.draw.line(screen, (0, 0, 0), (sling_x, sling_y-8),
                              (sling2_x, sling2_y-7), 5)
-    # Draw the birds in the wait line
-    if level.number_of_birds > 0:
-        for i in range(level.number_of_birds-1):
-            x = 100 - (i*35)
-            screen.blit(redbird, (x, 500))
     birds_to_remove = []
     pigs_to_remove = []
     counter += 1
