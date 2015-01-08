@@ -1,5 +1,7 @@
 Angry Birds em Python
 ========
+[Youtube Video] (https://www.youtube.com/watch?v=B7G5JtCFepE&feature=youtu.be)
+
 ![Alt text](/resources/images/angry-birds-image.png?raw=true "angry-birds")
 
 Requisitos: Python 2 ou 3 + Pygame
@@ -11,8 +13,8 @@ Requisitos: Python 2 ou 3 + Pygame
 
 ####Gravidade Zero
 ![Alt text](/resources/images/gravity-zero.png?raw=true "angry-birds")
-Para ativar a "gravidade zero" aperte a tecla s.
-Para voltar ao modo normal aperte a tecla n.
+* Para ativar a "gravidade zero" aperte a tecla s.
+* Para voltar ao modo normal aperte a tecla n.
 
 ####Junte-se ao projeto
 O projeto é Open Source, contribua a vontade.
