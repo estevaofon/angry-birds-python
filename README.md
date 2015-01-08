@@ -1,17 +1,20 @@
-Angry Birds in Python
+Angry Birds em Python
 ========
 ![Alt text](/resources/images/angry-birds-image.png?raw=true "angry-birds")
 
-Python source code of angry-birds-python
+Requisitos: Python 2 ou 3 + Pygame
 
-Requirements: Python 2 or 3 + Pygame
-####To play
-1. Download the zip file or clone the project.
-3. Open the src folder
-4. Run main.py
+####Para jogar
+1. Faça download do projeto ou clone-o.
+3. Abra a pasta src
+4. Execute o main.py
 
-####Join the project
-The project is Open Source. Feel free to contribute.
+####Gravidade Zero
+Para ativar a "gravidade zero" aperte a tecla s
+Para voltar ao modo normal aperte a tecla n
 
-####To contribute
-Pull a new topic branch to the develop branch.
+####Junte-se ao projeto
+O projeto é Open Source, contribua a vontade.
+
+####Para contribuir
+Envie a sua branch para a develop branch
