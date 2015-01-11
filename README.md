@@ -16,6 +16,10 @@ Requisitos: Python 2 ou 3 + Pygame
 * Para ativar a "gravidade zero" aperte a tecla s.
 * Para voltar ao modo normal aperte a tecla n.
 
+####Ativar e Desativar Parede 
+![Alt text](/resources/images/walls.png?raw=true "angry-birds")
+* Para ativar ou desativar a parede aperte a tecla w.
+
 ####Junte-se ao projeto
 O projeto é Open Source, contribua a vontade.
 

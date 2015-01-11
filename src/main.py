@@ -83,11 +83,17 @@ bonus_score_once = True
 bold_font = pygame.font.SysFont("arial", 30, bold=True)
 bold_font2 = pygame.font.SysFont("arial", 40, bold=True)
 bold_font3 = pygame.font.SysFont("arial", 50, bold=True)
+wall = False
 
 # Static floor
 static_body = pm.Body()
 static_lines = [pm.Segment(static_body, (0.0, 060.0), (1200.0, 060.0), 0.0)]
+static_lines1 = [pm.Segment(static_body, (1200.0, 060.0), (1200.0, 800.0), 0.0)]
 for line in static_lines:
+    line.elasticity = 0.95
+    line.friction = 1
+    line.collision_type = 3
+for line in static_lines1:
     line.elasticity = 0.95
     line.friction = 1
     line.collision_type = 3
@@ -321,6 +327,15 @@ while running:
             running = False
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
             running = False
+        elif event.type == pygame.KEYDOWN and event.key == pygame.K_w:
+            # Toggle wall
+            if wall:
+                space.remove(static_lines1)
+                wall = False
+            else:
+                space.add(static_lines1)
+                wall = True
+
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_s:
             space.gravity = (0.0, -10.0)
             level.bool_space = True
