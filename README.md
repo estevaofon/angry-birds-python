@@ -1,27 +1,27 @@
-Angry Birds em Python
+Angry Birds in Python
 ========
 [Youtube Video] (https://www.youtube.com/watch?v=B7G5JtCFepE&feature=youtu.be)
 
 ![Alt text](/resources/images/angry-birds-image.png?raw=true "angry-birds")
 
-Requisitos: Python 2 ou 3 + Pygame
+Requirements: Python 2 ou 3 + Pygame
 
-####Para jogar
-1. Faça download do projeto ou clone-o.
-3. Abra a pasta src
-4. Execute o main.py
+####To play
+1. Download the zip file or clone the project.
+3. Open the src folder.
+4. Run main.py.
 
-####Gravidade Zero
+####Zero Gravity
 ![Alt text](/resources/images/gravity-zero.png?raw=true "angry-birds")
-* Para ativar a "gravidade zero" aperte a tecla s.
-* Para voltar ao modo normal aperte a tecla n.
+*To activate the "zero gravity mode" press key s.
+*To back to normal mode press key n.
 
-####Ativar e Desativar Parede 
+####Activate &  Deactivate the wall
 ![Alt text](/resources/images/walls.png?raw=true "angry-birds")
-* Para ativar ou desativar a parede aperte a tecla w.
+*To activate or deactivate the wall press key w.
 
-####Junte-se ao projeto
-O projeto é Open Source, contribua a vontade.
+####Join the project
+The project is Open Source. Feel free to contribute.
 
-####Para contribuir
-Envie a sua branch para a develop branch
+####To contribute
+Pull a new topic branch to the develop branch.
