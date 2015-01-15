@@ -13,12 +13,12 @@ Requirements: Python 2 ou 3 + Pygame
 
 ####Zero Gravity
 ![Alt text](/resources/images/gravity-zero.png?raw=true "angry-birds")
-*To activate the "zero gravity mode" press key s.
-*To back to normal mode press key n.
+* To activate the "zero gravity mode" press key s.
+* To back to normal mode press key n.
 
 ####Activate &  Deactivate the wall
 ![Alt text](/resources/images/walls.png?raw=true "angry-birds")
-*To activate or deactivate the wall press key w.
+* To activate or deactivate the wall press key w.
 
 ####Join the project
 The project is Open Source. Feel free to contribute.
