@@ -8,13 +8,12 @@ class Level():
         self.columns = columns
         self.beams = beams
         self.space = space
-        self.number = []
+        self.number = 0
         self.number_of_birds = 4
         # lower limit
         self.one_star = 30000
         self.two_star = 40000
         self.three_star = 60000
-        self.no_more_level = False
         self.bool_space = False
 
     def open_flat(self, x, y, n):
@@ -324,9 +323,11 @@ class Level():
         if self.bool_space:
             self.number_of_birds = 8
 
-    def load_level(self, number):
+    def load_level(self):
         try:
-            build_name = "build_"+str(number)
+            build_name = "build_"+str(self.number)
             getattr(self, build_name)()
         except AttributeError:
-            self.no_more_level = True
+            self.number = 0
+            build_name = "build_"+str(self.number)
+            getattr(self, build_name)()

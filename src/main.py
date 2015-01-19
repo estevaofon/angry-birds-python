@@ -75,7 +75,6 @@ sling_x, sling_y = 135, 450
 sling2_x, sling2_y = 160, 450
 score = 0
 game_state = 0
-number_level = 0
 bird_path = []
 counter = 0
 restart_counter = False
@@ -318,7 +317,7 @@ space.add_collision_handler(0, 2, post_solve=post_solve_bird_wood)
 space.add_collision_handler(1, 2, post_solve=post_solve_pig_wood)
 load_music()
 level = Level(pigs, columns, beams, space)
-level.load_level(number_level)
+level.load_level()
 
 while running:
     # Input handling
@@ -374,14 +373,14 @@ while running:
                 if x_mouse > 500 and y_mouse > 300:
                     # Restart in the paused screen
                     restart()
-                    level.load_level(number_level)
+                    level.load_level()
                     game_state = 0
                     bird_path = []
             if game_state == 3:
                 # Restart in the failed level screen
                 if x_mouse > 500 and x_mouse < 620 and y_mouse > 450:
                     restart()
-                    level.load_level(number_level)
+                    level.load_level()
                     game_state = 0
                     bird_path = []
                     score = 0
@@ -389,19 +388,16 @@ while running:
                 # Build next level
                 if x_mouse > 610 and y_mouse > 450:
                     restart()
-                    number_level += 1
+                    level.number += 1
                     game_state = 0
-                    level.load_level(number_level)
+                    level.load_level()
                     score = 0
                     bird_path = []
                     bonus_score_once = True
-                    if level.no_more_level:
-                        number_level = 0
-                        level.no_more_level = False
                 if x_mouse < 610 and x_mouse > 500 and y_mouse > 450:
                     # Restart in the level cleared screen
                     restart()
-                    level.load_level(number_level)
+                    level.load_level()
                     game_state = 0
                     bird_path = []
                     score = 0
