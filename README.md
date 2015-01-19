@@ -8,8 +8,8 @@ Requirements: Python 2 ou 3 + Pygame
 
 ####To play
 1. Download the zip file or clone the project.
-3. Open the src folder.
-4. Run main.py.
+2. Open the src folder.
+3. Run main.py.
 
 ####Zero Gravity
 ![Alt text](/resources/images/gravity-zero.png?raw=true "angry-birds")
