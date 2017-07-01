@@ -471,9 +471,13 @@ while running:
 
         p = to_pygame(pig.body.position)
         x, y = p
-        x -= 22
-        y -= 20
-        screen.blit(pig_image, (x+7, y+4))
+        
+        angle_degrees = math.degrees(pig.body.angle)
+        img = pygame.transform.rotate(pig_image, angle_degrees)
+        w,h = img.get_size()
+        x -= w*0.5
+        y -= h*0.5
+        screen.blit(img, (x, y))
         pygame.draw.circle(screen, BLUE, p, int(pig.radius), 2)
     # Draw columns and Beams
     for column in columns:
