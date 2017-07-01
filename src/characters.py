@@ -13,7 +13,7 @@ class Bird():
         power = distance * 53
         impulse = power * Vec2d(1, 0)
         angle = -angle
-        body.apply_impulse(impulse.rotated(angle))
+        body.apply_impulse_at_local_point(impulse.rotated(angle))
         shape = pm.Circle(body, radius, (0, 0))
         shape.elasticity = 0.95
         shape.friction = 1

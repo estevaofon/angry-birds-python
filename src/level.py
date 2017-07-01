@@ -53,7 +53,7 @@ class Level():
         """Create a vertical pile"""
         y += 10
         for i in range(n):
-            p = (x, y+85+i*70)
+            p = (x, y+85+i*85)
             self.columns.append(Polygon(p, 20, 85, self.space))
 
     def build_0(self):
