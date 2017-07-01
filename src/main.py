@@ -4,7 +4,6 @@ import math
 import time
 import pygame
 current_path = os.getcwd()
-sys.path.insert(0, os.path.join(current_path, "../pymunk-4.0.0"))
 import pymunk as pm
 from characters import Bird
 from level import Level
@@ -85,7 +84,7 @@ bold_font3 = pygame.font.SysFont("arial", 50, bold=True)
 wall = False
 
 # Static floor
-static_body = pm.Body()
+static_body = pm.Body(body_type=pm.Body.STATIC)
 static_lines = [pm.Segment(static_body, (0.0, 060.0), (1200.0, 060.0), 0.0)]
 static_lines1 = [pm.Segment(static_body, (1200.0, 060.0), (1200.0, 800.0), 0.0)]
 for line in static_lines:
@@ -249,8 +248,9 @@ def restart():
         beams.remove(beam)
 
 
-def post_solve_bird_pig(space, arbiter, surface=screen):
+def post_solve_bird_pig(arbiter, space, _):
     """Collision between bird and pig"""
+    surface=screen
     a, b = arbiter.shapes
     bird_body = a.body
     pig_body = b.body
@@ -271,7 +271,7 @@ def post_solve_bird_pig(space, arbiter, surface=screen):
         pigs.remove(pig)
 
 
-def post_solve_bird_wood(space, arbiter):
+def post_solve_bird_wood(arbiter, space, _):
     """Collision between bird and wood"""
     poly_to_remove = []
     if arbiter.total_impulse.length > 1100:
@@ -292,7 +292,7 @@ def post_solve_bird_wood(space, arbiter):
         score += 5000
 
 
-def post_solve_pig_wood(space, arbiter):
+def post_solve_pig_wood(arbiter, space, _):
     """Collision between pig and wood"""
     pigs_to_remove = []
     if arbiter.total_impulse.length > 700:
@@ -310,13 +310,14 @@ def post_solve_pig_wood(space, arbiter):
 
 
 # bird and pigs
-space.add_collision_handler(0, 1, post_solve=post_solve_bird_pig)
+space.add_collision_handler(0, 1).post_solve=post_solve_bird_pig
 # bird and wood
-space.add_collision_handler(0, 2, post_solve=post_solve_bird_wood)
+space.add_collision_handler(0, 2).post_solve=post_solve_bird_wood
 # pig and wood
-space.add_collision_handler(1, 2, post_solve=post_solve_pig_wood)
+space.add_collision_handler(1, 2).post_solve=post_solve_pig_wood
 load_music()
 level = Level(pigs, columns, beams, space)
+level.number = 6
 level.load_level()
 
 while running:
@@ -485,9 +486,9 @@ while running:
     for beam in beams:
         beam.draw_poly('beams', screen)
     # Update physics
-    dt = 1.0/60.0
-    for x in range(1):
-        space.step(dt)
+    dt = 1.0/50.0/2.
+    for x in range(2):
+        space.step(dt) # make two updates per frame for better stability
     # Drawing second part of the sling
     rect = pygame.Rect(0, 0, 60, 200)
     screen.blit(sling_image, (120, 420), rect)

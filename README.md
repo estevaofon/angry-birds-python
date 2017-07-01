@@ -4,9 +4,12 @@ Angry Birds in Python
 
 ![Alt text](/resources/images/angry-birds-image.png?raw=true "angry-birds")
 
-Requirements: Python 2 or 3 + Pygame
+Requirements: Python 2 or 3 + Pygame + Pymunk
+
+Both Pygame and Pymunk can be installed with pip `pip install pymunk pygame`
 
 ### To play
+
 1. Download the zip file or clone the project.
 2. Open the src folder.
 3. Run main.py.
