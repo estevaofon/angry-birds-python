@@ -3,3 +3,5 @@ setup.py
 .idea
 .ropeproject
 src/setup.py
+__pycache__/
+env/

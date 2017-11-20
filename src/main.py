@@ -132,7 +132,7 @@ def distance(xo, yo, x, y):
 
 def load_music():
     """Load the music"""
-    song1 = '../resources/sounds/angry-birds.mp3'
+    song1 = '../resources/sounds/angry-birds.ogg'
     pygame.mixer.music.load(song1)
     pygame.mixer.music.play(-1)
 
@@ -317,7 +317,7 @@ space.add_collision_handler(0, 2).post_solve=post_solve_bird_wood
 space.add_collision_handler(1, 2).post_solve=post_solve_pig_wood
 load_music()
 level = Level(pigs, columns, beams, space)
-level.number = 6
+level.number = 0
 level.load_level()
 
 while running:
@@ -472,7 +472,7 @@ while running:
 
         p = to_pygame(pig.body.position)
         x, y = p
-        
+
         angle_degrees = math.degrees(pig.body.angle)
         img = pygame.transform.rotate(pig_image, angle_degrees)
         w,h = img.get_size()
