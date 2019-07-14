@@ -10,8 +10,12 @@ from level import Level
 
 
 pygame.init()
+GRID_SIZE = 16
+
+
 screen = pygame.display.set_mode((1200, 650))
 SCREENW, SCREENH = pygame.display.get_surface().get_size()
+
 redbird = pygame.image.load(
     "../resources/images/red-bird3.png").convert_alpha()
 background2 = pygame.image.load(
@@ -311,10 +315,10 @@ def post_solve_pig_wood(arbiter, space, _):
 
 def to_pygame(p):
     """Convert pymunk to pygame coordinates"""
-    return int(p.x), int(-p.y+600)
+    return int(p.x), int(-p.y + SCREENW // 2)
 def to_pymunk(p):
     """pygame coords -> pymunk coords"""
-    return int(p[0]), int(540 - (p[1]))
+    return int(p[0]), int(SCREENW // 2 - (p[1]))
 
 # bird and pigs
 space.add_collision_handler(0, 1).post_solve=post_solve_bird_pig
@@ -346,7 +350,7 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if editor_mode:
-            space.step(0.000000001)
+            space.step(0.000000001) # Update body positions without actually moving anything
             if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
                 editor_mode = False
                 space.gravity = (0, -700)
@@ -370,7 +374,6 @@ while running:
                 #print(holding_body)
                 if holding_body:
                     #print('ss')
-                    GRID_SIZE = 16
                     event.pos = list(event.pos)
                     event.pos[0] = event.pos[0] // GRID_SIZE * GRID_SIZE
                     event.pos[1] = event.pos[1] // GRID_SIZE * GRID_SIZE
@@ -436,7 +439,7 @@ while running:
                     if level.number_of_birds == 0:
                         t2 = time.time()
             if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-                if (x_mouse < 60 and y_mouse < 155 and y_mouse > 90):
+                if (x_mouse < 60 and y_mouse < 60):
                     game_state = 1
                 if game_state == 1:
                     if x_mouse > 500 and y_mouse > 200 and y_mouse < 300:
@@ -572,13 +575,16 @@ while running:
         screen.blit(number_font, (1100, 130))
     else:
         screen.blit(number_font, (1060, 130))
-    screen.blit(pause_button, (10, 90))
+    screen.blit(pause_button, (10, 10))
     # Pause option
     if game_state == 1:
         screen.blit(play_button, (500, 200))
         screen.blit(replay_button, (500, 300))
     draw_level_cleared()
     draw_level_failed()
+    if editor_mode:
+        screen.blit( bold_font.render("EDITOR MODE", 1, RED) , (100,0)) 
+    
     pygame.display.flip()
     clock.tick(50)
     pygame.display.set_caption("fps: " + str(clock.get_fps()))
