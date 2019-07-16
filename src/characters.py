@@ -22,7 +22,6 @@ class Bird():
         self.body = body
         self.shape = shape
 
-
 class Pig():
     def __init__(self, x, y, space):
         self.life = 20

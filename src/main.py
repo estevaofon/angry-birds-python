@@ -2,15 +2,24 @@ import os
 import sys
 import math
 import time
-import pygame
+import pickle
 current_path = os.getcwd()
+
 import pymunk as pm
-from characters import Bird
+import pygame
+
+from polygon import Polygon
+from characters import Bird, Pig
 from level import Level
 
 
 pygame.init()
+GRID_SIZE = 16
+WOOD_STRENGTH_CONST = 300
+
 screen = pygame.display.set_mode((1200, 650))
+SCREENW, SCREENH = pygame.display.get_surface().get_size()
+
 redbird = pygame.image.load(
     "../resources/images/red-bird3.png").convert_alpha()
 background2 = pygame.image.load(
@@ -274,7 +283,7 @@ def post_solve_bird_pig(arbiter, space, _):
 def post_solve_bird_wood(arbiter, space, _):
     """Collision between bird and wood"""
     poly_to_remove = []
-    if arbiter.total_impulse.length > 1100:
+    if arbiter.total_impulse.length > arbiter.shapes[1].body.mass * WOOD_STRENGTH_CONST:
         a, b = arbiter.shapes
         for column in columns:
             if b == column.shape:
@@ -308,6 +317,12 @@ def post_solve_pig_wood(arbiter, space, _):
         space.remove(pig.shape, pig.shape.body)
         pigs.remove(pig)
 
+def to_pygame(p):
+    """Convert pymunk to pygame coordinates"""
+    return int(p.x), int(-p.y + SCREENW // 2)
+def to_pymunk(p):
+    """pygame coords -> pymunk coords"""
+    return int(p[0]), int(SCREENW // 2 - (p[1]))
 
 # bird and pigs
 space.add_collision_handler(0, 1).post_solve=post_solve_bird_pig
@@ -319,89 +334,191 @@ load_music()
 level = Level(pigs, columns, beams, space)
 level.number = 0
 level.load_level()
+bpressed = [0, 0, 0, 0, 0, 0]
+
+# Dragging in editor mode
+holding_body = None
+holding_constraint_rot = None
+holding_constraint_lin = None
+mouse_body = pm.Body()
+mouse_shape = pm.Circle(mouse_body,4)
+space.add(mouse_body, mouse_shape)
+editor_mode = False
+saving_level = False
+loading_level = False
+curr_text = ''
 
 while running:
     # Input handling
     for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            running = False
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-            running = False
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_w:
-            # Toggle wall
-            if wall:
-                space.remove(static_lines1)
-                wall = False
-            else:
-                space.add(static_lines1)
-                wall = True
-
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_s:
-            space.gravity = (0.0, -10.0)
-            level.bool_space = True
-        elif event.type == pygame.KEYDOWN and event.key == pygame.K_n:
-            space.gravity = (0.0, -700.0)
-            level.bool_space = False
         if (pygame.mouse.get_pressed()[0] and x_mouse > 100 and
                 x_mouse < 250 and y_mouse > 370 and y_mouse < 550):
             mouse_pressed = True
-        if (event.type == pygame.MOUSEBUTTONUP and
-                event.button == 1 and mouse_pressed):
-            # Release new bird
-            mouse_pressed = False
-            if level.number_of_birds > 0:
-                level.number_of_birds -= 1
-                t1 = time.time()*1000
-                xo = 154
-                yo = 156
-                if mouse_distance > rope_lenght:
-                    mouse_distance = rope_lenght
-                if x_mouse < sling_x+5:
-                    bird = Bird(mouse_distance, angle, xo, yo, space)
-                    birds.append(bird)
+        if event.type == pygame.QUIT:
+            running = False
+        if editor_mode:
+            if not (loading_level or saving_level):
+                space.step(0.000000001) # Update body positions without actually moving anything
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
+                    editor_mode = False
+                    space.gravity = (0., -700)
+                    # Exit editor mode
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    bpressed[event.button] = 1
+                    if bpressed[1]:
+                    
+                        qpos = to_pymunk(event.pos)
+                        for shape in [*[i.shape for i in [*pigs, *columns, *beams]]]:
+                            #print(shape.point_query(qpos)[0])
+                            if shape.point_query(qpos)[0] < 0:
+                                holding_body = shape
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    bpressed[event.button] = 0
+                    if event.button == 1:
+                        pass
+                        if holding_body:
+                            holding_body = None
+                elif event.type == pygame.MOUSEMOTION:
+                    #print(holding_body)
+                    if holding_body:
+                        #print('ss')
+                        event.pos = list(event.pos)
+                        event.pos[0] = event.pos[0] // GRID_SIZE * GRID_SIZE
+                        event.pos[1] = event.pos[1] // GRID_SIZE * GRID_SIZE
+                        event.pos = tuple(event.pos)
+                        holding_body.body.position = to_pymunk(event.pos)
+                elif event.type == pygame.KEYDOWN:
+                    if holding_body:
+                        if event.key == pygame.K_a:
+                            # Rotate counterclockwise
+                            holding_body.body.angle += math.pi / 4
+                            # Snap angle
+                            holding_body.body.angle = holding_body.body.angle // (math.pi / 4) * (math.pi / 4)
+                        elif event.key == pygame.K_d:
+                            # Rotate clockwise
+                            holding_body.body.angle -= math.pi / 4 
+                            # Snap angle
+                            holding_body.body.angle = holding_body.body.angle // (math.pi / 4) * (math.pi / 4)
+                    elif event.key == pygame.K_n:
+                        # New level
+                        restart()
+                    elif event.key == pygame.K_m:
+                        columns.append(Polygon(to_pymunk(pygame.mouse.get_pos()), 20, 85, space))
+
+                    elif event.key == pygame.K_b:
+                        pig = Pig(*to_pymunk(pygame.mouse.get_pos()), space)
+                        pigs.append(pig)    
+                    elif event.key == pygame.K_s:
+                        saving_level = True
+                    elif event.key == pygame.K_l:
+                        loading_level = True
+            elif (saving_level or loading_level) and event.type == pygame.KEYUP:
+                # Add character to saving buffer
+                # make sure the user hasn't typed anything evil
+                assert pygame.key.name(event.key) not in ['/','.']
+                if event.key == pygame.K_RETURN:
+                    if saving_level:
+                        saving_level = False
+                        with open('../levels/%s.pickle' % curr_text, 'wb')  as f:
+                            pickle.dump((beams, pigs, columns), f)
+                    elif loading_level:
+                        loading_level = False
+                        with open('../levels/%s.pickle' % curr_text, 'rb')  as f:
+                            restart()
+                            beams, pigs, columns = pickle.load(f)
+                            for i in [*beams, *pigs, *columns]:
+                                space.add(i.body, i.shape)
+                    curr_text = ''
+                elif event.key == pygame.K_BACKSPACE:
+                    curr_text = curr_text[:-1]
+                if len(pygame.key.name(event.key)) > 1: # Dirty way of checking that the user hasn't typed a control character
+                    continue                 
+                curr_text += pygame.key.name(event.key)
+                print(pygame.key.name(event.key))
+        else:
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                running = False
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_w:
+                # Toggle wall
+                if wall:
+                    space.remove(static_lines1)
+                    wall = False
                 else:
-                    bird = Bird(-mouse_distance, angle, xo, yo, space)
-                    birds.append(bird)
-                if level.number_of_birds == 0:
-                    t2 = time.time()
-        if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
-            if (x_mouse < 60 and y_mouse < 155 and y_mouse > 90):
-                game_state = 1
-            if game_state == 1:
-                if x_mouse > 500 and y_mouse > 200 and y_mouse < 300:
-                    # Resume in the paused screen
-                    game_state = 0
-                if x_mouse > 500 and y_mouse > 300:
-                    # Restart in the paused screen
-                    restart()
-                    level.load_level()
-                    game_state = 0
-                    bird_path = []
-            if game_state == 3:
-                # Restart in the failed level screen
-                if x_mouse > 500 and x_mouse < 620 and y_mouse > 450:
-                    restart()
-                    level.load_level()
-                    game_state = 0
-                    bird_path = []
-                    score = 0
-            if game_state == 4:
-                # Build next level
-                if x_mouse > 610 and y_mouse > 450:
-                    restart()
-                    level.number += 1
-                    game_state = 0
-                    level.load_level()
-                    score = 0
-                    bird_path = []
-                    bonus_score_once = True
-                if x_mouse < 610 and x_mouse > 500 and y_mouse > 450:
-                    # Restart in the level cleared screen
-                    restart()
-                    level.load_level()
-                    game_state = 0
-                    bird_path = []
-                    score = 0
+                    space.add(static_lines1)
+                    wall = True
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_e:
+                editor_mode = True
+                space.gravity = 0., 0
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_s:
+                if level.bool_space:
+                    space.gravity = (0.0, -700.0)
+                else:
+                    space.gravity = (0.0, -10.0)
+                level.bool_space = not level.bool_space
+            elif event.type == pygame.KEYDOWN and event.key == pygame.K_r:
+
+                # Restart in the paused screen
+                restart()
+                level.load_level()
+                game_state = 0
+                bird_path = []
+            if (event.type == pygame.MOUSEBUTTONUP and
+                    event.button == 1 and mouse_pressed):
+                # Release new bird
+                mouse_pressed = False
+                if level.number_of_birds > 0:
+                    level.number_of_birds -= 1
+                    t1 = time.time()*1000
+                    xo = 154
+                    yo = 156
+                    if mouse_distance > rope_lenght:
+                        mouse_distance = rope_lenght
+                    if x_mouse < sling_x+5:
+                        bird = Bird(mouse_distance, angle, xo, yo, space)
+                        birds.append(bird)
+                    else:
+                        bird = Bird(-mouse_distance, angle, xo, yo, space)
+                        birds.append(bird)
+                    if level.number_of_birds == 0:
+                        t2 = time.time()
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                if (x_mouse < 60 and y_mouse < 60):
+                    game_state = 1
+                if game_state == 1:
+                    if x_mouse > 500 and y_mouse > 200 and y_mouse < 300:
+                        # Resume in the paused screen
+                        game_state = 0
+                    if x_mouse > 500 and y_mouse > 300:
+                        # Restart in the paused screen
+                        restart()
+                        level.load_level()
+                        game_state = 0
+                        bird_path = []
+                if game_state == 3:
+                    # Restart in the failed level screen
+                    if x_mouse > 500 and x_mouse < 620 and y_mouse > 450:
+                        restart()
+                        level.load_level()
+                        game_state = 0
+                        bird_path = []
+                        score = 0
+                if game_state == 4:
+                    # Build next level
+                    if x_mouse > 610 and y_mouse > 450:
+                        restart()
+                        level.number += 1
+                        game_state = 0
+                        level.load_level()
+                        score = 0
+                        bird_path = []
+                        bonus_score_once = True
+                    if x_mouse < 610 and x_mouse > 500 and y_mouse > 450:
+                        # Restart in the level cleared screen
+                        restart()
+                        level.load_level()
+                        game_state = 0
+                        bird_path = []
+                        score = 0
     x_mouse, y_mouse = pygame.mouse.get_pos()
     # Draw background
     screen.fill((130, 200, 100))
@@ -488,7 +605,8 @@ while running:
     # Update physics
     dt = 1.0/50.0/2.
     for x in range(2):
-        space.step(dt) # make two updates per frame for better stability
+        if not editor_mode: # No physics in editor mode
+            space.step(dt) # make two updates per frame for better stability
     # Drawing second part of the sling
     rect = pygame.Rect(0, 0, 60, 200)
     screen.blit(sling_image, (120, 420), rect)
@@ -500,13 +618,22 @@ while running:
         screen.blit(number_font, (1100, 130))
     else:
         screen.blit(number_font, (1060, 130))
-    screen.blit(pause_button, (10, 90))
+    screen.blit(pause_button, (10, 10))
     # Pause option
     if game_state == 1:
         screen.blit(play_button, (500, 200))
         screen.blit(replay_button, (500, 300))
-    draw_level_cleared()
-    draw_level_failed()
+    if not editor_mode:
+        draw_level_cleared()
+        draw_level_failed()
+    if loading_level:
+        
+        screen.blit( bold_font.render("Loading from %s.pickle" % curr_text , 1, RED) , (100,0))
+    elif saving_level:
+        screen.blit( bold_font.render("Saving as %s.pickle" % curr_text , 1, RED) , (100,0))
+    elif editor_mode:
+        screen.blit( bold_font.render("EDITOR MODE", 1, RED) , (100,0)) 
+    
     pygame.display.flip()
     clock.tick(50)
     pygame.display.set_caption("fps: " + str(clock.get_fps()))
