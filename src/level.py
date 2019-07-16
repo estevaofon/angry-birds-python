@@ -43,7 +43,6 @@ class Level():
             self.beams.append(Polygon(p, 85, 20, self.space))
 
     def horizontal_pile(self, x, y, n):
-        """Create a horizontal pile"""
         y += 70
         for i in range(n):
             p = (x, y+i*20)
@@ -55,7 +54,6 @@ class Level():
         for i in range(n):
             p = (x, y+85+i*85)
             self.columns.append(Polygon(p, 20, 85, self.space))
-
     def build_0(self):
         """level 0"""
         pig1 = Pig(980, 100, self.space)
@@ -322,7 +320,9 @@ class Level():
         self.number_of_birds = 4
         if self.bool_space:
             self.number_of_birds = 8
-
+    def build_None(self):
+        # makes an empty level!
+        pass
     def load_level(self):
         try:
             build_name = "build_"+str(self.number)

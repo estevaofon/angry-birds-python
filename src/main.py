@@ -2,16 +2,20 @@ import os
 import sys
 import math
 import time
-import pygame
+import pickle
 current_path = os.getcwd()
+
 import pymunk as pm
-from characters import Bird
+import pygame
+
+from polygon import Polygon
+from characters import Bird, Pig
 from level import Level
 
 
 pygame.init()
 GRID_SIZE = 16
-
+WOOD_STRENGTH_CONST = 300
 
 screen = pygame.display.set_mode((1200, 650))
 SCREENW, SCREENH = pygame.display.get_surface().get_size()
@@ -279,7 +283,7 @@ def post_solve_bird_pig(arbiter, space, _):
 def post_solve_bird_wood(arbiter, space, _):
     """Collision between bird and wood"""
     poly_to_remove = []
-    if arbiter.total_impulse.length > 1100:
+    if arbiter.total_impulse.length > arbiter.shapes[1].body.mass * WOOD_STRENGTH_CONST:
         a, b = arbiter.shapes
         for column in columns:
             if b == column.shape:
@@ -340,6 +344,9 @@ mouse_body = pm.Body()
 mouse_shape = pm.Circle(mouse_body,4)
 space.add(mouse_body, mouse_shape)
 editor_mode = False
+saving_level = False
+loading_level = False
+curr_text = ''
 
 while running:
     # Input handling
@@ -350,48 +357,84 @@ while running:
         if event.type == pygame.QUIT:
             running = False
         if editor_mode:
-            space.step(0.000000001) # Update body positions without actually moving anything
-            if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
-                editor_mode = False
-                space.gravity = (0, -700)
-                # Exit editor mode
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                bpressed[event.button] = 1
-                if bpressed[1]:
-                    if holding_body:
-                        holding_body = None
-                    else:
+            if not (loading_level or saving_level):
+                space.step(0.000000001) # Update body positions without actually moving anything
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_e:
+                    editor_mode = False
+                    space.gravity = (0., -700)
+                    # Exit editor mode
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    bpressed[event.button] = 1
+                    if bpressed[1]:
+                    
                         qpos = to_pymunk(event.pos)
                         for shape in [*[i.shape for i in [*pigs, *columns, *beams]]]:
                             #print(shape.point_query(qpos)[0])
                             if shape.point_query(qpos)[0] < 0:
                                 holding_body = shape
-            elif event.type == pygame.MOUSEBUTTONUP:
-                bpressed[event.button] = 0
-                if event.button == 1:
-                    pass
-            elif event.type == pygame.MOUSEMOTION:
-                #print(holding_body)
-                if holding_body:
-                    #print('ss')
-                    event.pos = list(event.pos)
-                    event.pos[0] = event.pos[0] // GRID_SIZE * GRID_SIZE
-                    event.pos[1] = event.pos[1] // GRID_SIZE * GRID_SIZE
-                    event.pos = tuple(event.pos)
-                    holding_body.body.position = to_pymunk(event.pos)
-            elif event.type == pygame.KEYDOWN:
-                if holding_body:
-                    if event.key == pygame.K_a:
-                        # Rotate counterclockwise
-                        holding_body.body.angle += math.pi / 4
-                        # Snap angle
-                        holding_body.body.angle = holding_body.body.angle // (math.pi / 4) * (math.pi / 4)
-                    elif event.key == pygame.K_d:
-                        # Rotate clockwise
-                        holding_body.body.angle -= math.pi / 4 
-                        # Snap angle
-                        holding_body.body.angle = holding_body.body.angle // (math.pi / 4) * (math.pi / 4)
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    bpressed[event.button] = 0
+                    if event.button == 1:
+                        pass
+                        if holding_body:
+                            holding_body = None
+                elif event.type == pygame.MOUSEMOTION:
+                    #print(holding_body)
+                    if holding_body:
+                        #print('ss')
+                        event.pos = list(event.pos)
+                        event.pos[0] = event.pos[0] // GRID_SIZE * GRID_SIZE
+                        event.pos[1] = event.pos[1] // GRID_SIZE * GRID_SIZE
+                        event.pos = tuple(event.pos)
+                        holding_body.body.position = to_pymunk(event.pos)
+                elif event.type == pygame.KEYDOWN:
+                    if holding_body:
+                        if event.key == pygame.K_a:
+                            # Rotate counterclockwise
+                            holding_body.body.angle += math.pi / 4
+                            # Snap angle
+                            holding_body.body.angle = holding_body.body.angle // (math.pi / 4) * (math.pi / 4)
+                        elif event.key == pygame.K_d:
+                            # Rotate clockwise
+                            holding_body.body.angle -= math.pi / 4 
+                            # Snap angle
+                            holding_body.body.angle = holding_body.body.angle // (math.pi / 4) * (math.pi / 4)
+                    elif event.key == pygame.K_n:
+                        # New level
+                        restart()
+                    elif event.key == pygame.K_m:
+                        columns.append(Polygon(to_pymunk(pygame.mouse.get_pos()), 20, 85, space))
 
+                    elif event.key == pygame.K_b:
+                        pig = Pig(*to_pymunk(pygame.mouse.get_pos()), space)
+                        pigs.append(pig)    
+                    elif event.key == pygame.K_s:
+                        saving_level = True
+                    elif event.key == pygame.K_l:
+                        loading_level = True
+            elif (saving_level or loading_level) and event.type == pygame.KEYUP:
+                # Add character to saving buffer
+                # make sure the user hasn't typed anything evil
+                assert pygame.key.name(event.key) not in ['/','.']
+                if event.key == pygame.K_RETURN:
+                    if saving_level:
+                        saving_level = False
+                        with open('../levels/%s.pickle' % curr_text, 'wb')  as f:
+                            pickle.dump((beams, pigs, columns), f)
+                    elif loading_level:
+                        loading_level = False
+                        with open('../levels/%s.pickle' % curr_text, 'rb')  as f:
+                            restart()
+                            beams, pigs, columns = pickle.load(f)
+                            for i in [*beams, *pigs, *columns]:
+                                space.add(i.body, i.shape)
+                    curr_text = ''
+                elif event.key == pygame.K_BACKSPACE:
+                    curr_text = curr_text[:-1]
+                if len(pygame.key.name(event.key)) > 1: # Dirty way of checking that the user hasn't typed a control character
+                    continue                 
+                curr_text += pygame.key.name(event.key)
+                print(pygame.key.name(event.key))
         else:
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 running = False
@@ -405,7 +448,7 @@ while running:
                     wall = True
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_e:
                 editor_mode = True
-                space.gravity = 0,0
+                space.gravity = 0., 0
             elif event.type == pygame.KEYDOWN and event.key == pygame.K_s:
                 if level.bool_space:
                     space.gravity = (0.0, -700.0)
@@ -580,9 +623,15 @@ while running:
     if game_state == 1:
         screen.blit(play_button, (500, 200))
         screen.blit(replay_button, (500, 300))
-    draw_level_cleared()
-    draw_level_failed()
-    if editor_mode:
+    if not editor_mode:
+        draw_level_cleared()
+        draw_level_failed()
+    if loading_level:
+        
+        screen.blit( bold_font.render("Loading from %s.pickle" % curr_text , 1, RED) , (100,0))
+    elif saving_level:
+        screen.blit( bold_font.render("Saving as %s.pickle" % curr_text , 1, RED) , (100,0))
+    elif editor_mode:
         screen.blit( bold_font.render("EDITOR MODE", 1, RED) , (100,0)) 
     
     pygame.display.flip()
