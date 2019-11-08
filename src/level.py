@@ -2,7 +2,7 @@ from characters import Pig
 from polygon import Polygon
 
 
-class Level():
+class Level:
     def __init__(self, pigs, columns, beams, space):
         self.pigs = pigs
         self.columns = columns
@@ -20,40 +20,40 @@ class Level():
         """Create a open flat struture"""
         y0 = y
         for i in range(n):
-            y = y0+100+i*100
+            y = y0 + 100 + i * 100
             p = (x, y)
             self.columns.append(Polygon(p, 20, 85, self.space))
-            p = (x+60, y)
+            p = (x + 60, y)
             self.columns.append(Polygon(p, 20, 85, self.space))
-            p = (x+30, y+50)
+            p = (x + 30, y + 50)
             self.beams.append(Polygon(p, 85, 20, self.space))
 
     def closed_flat(self, x, y, n):
         """Create a closed flat struture"""
         y0 = y
         for i in range(n):
-            y = y0+100+i*125
-            p = (x+1, y+22)
+            y = y0 + 100 + i * 125
+            p = (x + 1, y + 22)
             self.columns.append(Polygon(p, 20, 85, self.space))
-            p = (x+60, y+22)
+            p = (x + 60, y + 22)
             self.columns.append(Polygon(p, 20, 85, self.space))
-            p = (x+30, y+70)
+            p = (x + 30, y + 70)
             self.beams.append(Polygon(p, 85, 20, self.space))
-            p = (x+30, y-30)
+            p = (x + 30, y - 30)
             self.beams.append(Polygon(p, 85, 20, self.space))
 
     def horizontal_pile(self, x, y, n):
         """Create a horizontal pile"""
         y += 70
         for i in range(n):
-            p = (x, y+i*20)
+            p = (x, y + i * 20)
             self.beams.append(Polygon(p, 85, 20, self.space))
 
     def vertical_pile(self, x, y, n):
         """Create a vertical pile"""
         y += 10
         for i in range(n):
-            p = (x, y+85+i*85)
+            p = (x, y + 85 + i * 85)
             self.columns.append(Polygon(p, 20, 85, self.space))
 
     def build_0(self):
@@ -195,10 +195,10 @@ class Level():
         pig = Pig(1000, 152, self.space)
         self.pigs.append(pig)
         for i in range(9):
-            p = (800, 70+i*21)
+            p = (800, 70 + i * 21)
             self.beams.append(Polygon(p, 85, 20, self.space))
         for i in range(4):
-            p = (1000, 70+i*21)
+            p = (1000, 70 + i * 21)
             self.beams.append(Polygon(p, 85, 20, self.space))
         p = (970, 176)
         self.columns.append(Polygon(p, 20, 85, self.space))
@@ -325,9 +325,9 @@ class Level():
 
     def load_level(self):
         try:
-            build_name = "build_"+str(self.number)
+            build_name = "build_" + str(self.number)
             getattr(self, build_name)()
         except AttributeError:
             self.number = 0
-            build_name = "build_"+str(self.number)
+            build_name = "build_" + str(self.number)
             getattr(self, build_name)()
