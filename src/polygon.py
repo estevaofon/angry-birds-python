@@ -36,23 +36,12 @@ class Polygon():
         ps = list(ps)
         color = (255, 0, 0)
         pygame.draw.lines(screen, color, False, ps)
-        if element == 'beams':
-            p = poly.body.position
-            p = Vec2d(self.to_pygame(p))
-            angle_degrees = math.degrees(poly.body.angle) + 180
-            rotated_logo_img = pygame.transform.rotate(self.beam_image,
-                                                       angle_degrees)
-            offset = Vec2d(rotated_logo_img.get_size()) / 2.
-            p = p - offset
-            np = p
-            screen.blit(rotated_logo_img, (np.x, np.y))
-        if element == 'columns':
-            p = poly.body.position
-            p = Vec2d(self.to_pygame(p))
-            angle_degrees = math.degrees(poly.body.angle) + 180
-            rotated_logo_img = pygame.transform.rotate(self.column_image,
-                                                       angle_degrees)
-            offset = Vec2d(rotated_logo_img.get_size()) / 2.
-            p = p - offset
-            np = p
-            screen.blit(rotated_logo_img, (np.x, np.y))
+        p = poly.body.position
+        p = Vec2d(self.to_pygame(p))
+        angle_degrees = math.degrees(poly.body.angle) + 180
+        rotated_logo_img = pygame.transform.rotate(
+            self.beam_image if element == 'beams'else self.column_image, angle_degrees)
+        offset = Vec2d(rotated_logo_img.get_size()) / 2.
+        p = p - offset
+        np = p
+        screen.blit(rotated_logo_img, (np.x, np.y))

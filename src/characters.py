@@ -2,7 +2,7 @@ import pymunk as pm
 from pymunk import Vec2d
 
 
-class Bird():
+class Bird:
     def __init__(self, distance, angle, x, y, space):
         self.life = 20
         mass = 5
@@ -23,7 +23,7 @@ class Bird():
         self.shape = shape
 
 
-class Pig():
+class Pig:
     def __init__(self, x, y, space):
         self.life = 20
         mass = 5
