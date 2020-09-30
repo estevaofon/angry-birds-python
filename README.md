@@ -1,4 +1,4 @@
-Angry Birds in Python
+Angry Birds in Python Amazing project
 =====================
 [Youtube Video](https://www.youtube.com/watch?v=B7G5JtCFepE&feature=youtu.be)
 
@@ -29,4 +29,4 @@ Activate &  Deactivate the wall
 
 Join the project
 ----------------
-The project is Open Source. Feel free to contribute.
+*The project is Open Source. Feel free to contribute*
