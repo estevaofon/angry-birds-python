@@ -7,7 +7,7 @@ Angry Birds in Python
 Requirements
 ------------
 ```bash
-pip install pymunk pygame
+pip install -r requirements.txt
 ```
 
 To play
@@ -30,3 +30,4 @@ Activate &  Deactivate the wall
 Join the project
 ----------------
 The project is Open Source. Feel free to contribute.
+Please help me to keep this project updated! Thanks you very much :)
