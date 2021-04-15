@@ -8,7 +8,7 @@ class Polygon():
     def __init__(self, pos, length, height, space, mass=5.0):
         moment = 1000
         body = pm.Body(mass, moment)
-        body.position = Vec2d(pos)
+        body.position = Vec2d(*pos)
         shape = pm.Poly.create_box(body, (length, height))
         shape.color = (0, 0, 255)
         shape.friction = 0.5
@@ -38,21 +38,21 @@ class Polygon():
         pygame.draw.lines(screen, color, False, ps)
         if element == 'beams':
             p = poly.body.position
-            p = Vec2d(self.to_pygame(p))
+            p = Vec2d(*self.to_pygame(p))
             angle_degrees = math.degrees(poly.body.angle) + 180
             rotated_logo_img = pygame.transform.rotate(self.beam_image,
                                                        angle_degrees)
-            offset = Vec2d(rotated_logo_img.get_size()) / 2.
+            offset = Vec2d(*rotated_logo_img.get_size()) / 2.
             p = p - offset
             np = p
             screen.blit(rotated_logo_img, (np.x, np.y))
         if element == 'columns':
             p = poly.body.position
-            p = Vec2d(self.to_pygame(p))
+            p = Vec2d(*self.to_pygame(p))
             angle_degrees = math.degrees(poly.body.angle) + 180
             rotated_logo_img = pygame.transform.rotate(self.column_image,
                                                        angle_degrees)
-            offset = Vec2d(rotated_logo_img.get_size()) / 2.
+            offset = Vec2d(*rotated_logo_img.get_size()) / 2.
             p = p - offset
             np = p
             screen.blit(rotated_logo_img, (np.x, np.y))

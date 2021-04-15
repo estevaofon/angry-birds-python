@@ -95,7 +95,9 @@ for line in static_lines1:
     line.elasticity = 0.95
     line.friction = 1
     line.collision_type = 3
-space.add(static_lines)
+space.add(static_body)
+for line in static_lines:
+    space.add(line)
 
 
 def to_pygame(p):
