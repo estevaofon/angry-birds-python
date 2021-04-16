@@ -332,10 +332,12 @@ while running:
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_w:
             # Toggle wall
             if wall:
-                space.remove(static_lines1)
+                for line in static_lines1:
+                    space.remove(line)
                 wall = False
             else:
-                space.add(static_lines1)
+                for line in static_lines1:
+                    space.add(line)
                 wall = True
 
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_s:
