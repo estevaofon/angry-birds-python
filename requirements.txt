@@ -1,2 +1,4 @@
-pygame==2.0.1
+cffi==1.15.1
+pycparser==2.21
+pygame==2.1.3
 pymunk==6.0.0
